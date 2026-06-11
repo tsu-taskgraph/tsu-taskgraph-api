@@ -1,3 +1,19 @@
 spring:
   application:
     name: tsu-taskgraph-api
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/task-graph-bd
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+    enabled: true
+    default-schema: public
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
