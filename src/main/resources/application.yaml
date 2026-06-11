@@ -26,3 +26,9 @@ springdoc:
     path: /swagger-ui.html
     # Включает сохранение JWT токена при перезагрузке страницы Swagger в браузере
     persistAuthorization: true
+
+jwt:
+  secret: "bXktc3VwZXItc2VjcmV0LWtleS10YXNrZ3JhcGgtMjAyNC1zZWN1cmU="
+  expiration:
+    access: 900000     # 15 минут в миллисекундах
+    refresh: 604800000 # 7 дней в миллисекундах
