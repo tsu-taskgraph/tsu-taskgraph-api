@@ -82,6 +82,7 @@ jobs:
             echo "POSTGRES_USER=${{ secrets.DB_USER }}" >> .env
             echo "POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
             echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" >> .env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
             
             echo "📥 Pulling latest images..."
             docker compose -f compose.prod.yaml pull api
