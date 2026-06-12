@@ -1,0 +1,106 @@
+name: Task Graph API CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  JAVA_VERSION: '21'
+  DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/tsu-taskgraph-api
+  DEPLOY_USERNAME: 'deployuser'
+  SERVICE_NAME: 'taskgraph-api'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: Production
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ☕ Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'gradle'
+
+      - name: 📦 Build with Gradle
+        run: |
+          chmod +x gradlew
+          ./gradlew clean bootJar -x test
+
+      - name: 📁 Publish artifacts
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: taskgraph-artifacts
+          path: build/libs/*.jar
+
+      - name: 🔐 Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: 🐳 Build and Push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_IMAGE }}:latest
+            ${{ env.DOCKER_IMAGE }}:${{ github.run_number }}
+
+      - name: 📁 Copy compose prod file to server
+        if: github.ref == 'refs/heads/main'
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ env.DEPLOY_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "compose.prod.yaml"
+          target: "/home/${{ env.DEPLOY_USERNAME }}/tsu-taskgraph-api/"
+
+      - name: 🚀 Deploy to Server (SSH)
+        if: github.ref == 'refs/heads/main'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ env.DEPLOY_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd /home/${{ env.DEPLOY_USERNAME }}/tsu-taskgraph-api/
+            
+            echo "🔐 Generating .env file from secrets..."
+            echo "POSTGRES_DB=${{ secrets.DB_NAME }}" > .env
+            echo "POSTGRES_USER=${{ secrets.DB_USER }}" >> .env
+            echo "POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+            echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" >> .env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            
+            echo "📥 Pulling latest images..."
+            docker compose -f compose.prod.yaml pull api
+            
+            echo "🚀 Starting containers..."
+            docker compose -f compose.prod.yaml up -d
+            
+            echo "🧹 Cleaning up old images..."
+            docker image prune -f
+
+      - name: 🛠 Rollback
+        if: failure() && github.ref == 'refs/heads/main'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ env.DEPLOY_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "⚠️ Deployment error. Ensuring current infrastructure is up..."
+            cd /home/${{ env.DEPLOY_USERNAME }}/tsu-taskgraph-api/
+            docker compose -f compose.prod.yaml up -d
