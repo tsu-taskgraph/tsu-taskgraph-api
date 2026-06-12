@@ -1,0 +1,36 @@
+services:
+  core-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      no_cache: true
+    container_name: core-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://task-graph-bd:5432/task-graph-bd
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+
+    depends_on:
+      - task-graph-bd
+
+
+  task-graph-bd:
+    image: postgres:17-alpine
+    container_name: task-graph-bd
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=task-graph-bd
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432" # 5432 - может быть занят
+    volumes:
+      - task-graph-bd-data:/var/lib/postgresql/data
+
+
+
+volumes:
+  task-graph-bd-data:
