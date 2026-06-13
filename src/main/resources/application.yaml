@@ -32,3 +32,6 @@ jwt:
   expiration:
     access: 900000     # 15 минут в миллисекундах
     refresh: 604800000 # 7 дней в миллисекундах
+
+server:
+  forward-headers-strategy: framework
