@@ -36,6 +36,10 @@ public class User implements UserDetails {
 
     private String avatarUrl;
 
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "ai_settings_id", referencedColumnName = "id")
+    private AiSettings aiSettings;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
