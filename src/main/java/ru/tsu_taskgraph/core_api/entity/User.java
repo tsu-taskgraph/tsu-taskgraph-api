@@ -1,4 +1,4 @@
-package ru.tsu_taskgraph.core_api.entiry;
+package ru.tsu_taskgraph.core_api.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
