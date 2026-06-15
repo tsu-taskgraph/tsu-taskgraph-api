@@ -2,37 +2,22 @@ package ru.tsu_taskgraph.core_api.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import ru.tsu_taskgraph.core_api.controller.UserController;
 import ru.tsu_taskgraph.core_api.dto.user.SavedAiSettings;
 import ru.tsu_taskgraph.core_api.dto.user.UpdateAiSettingsRequest;
 import ru.tsu_taskgraph.core_api.dto.user.UpdateProfileRequest;
 import ru.tsu_taskgraph.core_api.dto.user.UserProfile;
 import ru.tsu_taskgraph.core_api.entity.AiSettings;
-import ru.tsu_taskgraph.core_api.entity.ProviderSettings;
 import ru.tsu_taskgraph.core_api.entity.User;
-import ru.tsu_taskgraph.core_api.exception.AuthenticationException;
-import ru.tsu_taskgraph.core_api.exception.BadRequestException;
 import ru.tsu_taskgraph.core_api.exception.ResourceNotFoundException;
 import ru.tsu_taskgraph.core_api.mapper.UserMapper;
 import ru.tsu_taskgraph.core_api.repository.UserRepository;
 import ru.tsu_taskgraph.core_api.util.UserUtil;
-import static org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder.fromMethodName;
-import ru.tsu_taskgraph.core_api.controller.UserController;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.UUID;
+import static org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder.fromMethodName;
 
 @Slf4j
 @Service
@@ -125,7 +110,6 @@ public class UserService {
             userRepository.save(dbUser);
         }
     }
-
 
 
     private AiSettings getOrCreateAiSettings(User user) {

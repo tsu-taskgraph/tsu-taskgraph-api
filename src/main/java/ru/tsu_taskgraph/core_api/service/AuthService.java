@@ -10,11 +10,10 @@ import ru.tsu_taskgraph.core_api.dto.auth.RegisterRequest;
 import ru.tsu_taskgraph.core_api.entity.RefreshToken;
 import ru.tsu_taskgraph.core_api.entity.User;
 import ru.tsu_taskgraph.core_api.exception.AuthenticationException;
-import ru.tsu_taskgraph.core_api.exception.BadRequestException;
 import ru.tsu_taskgraph.core_api.exception.ResourceConflictException;
+import ru.tsu_taskgraph.core_api.mapper.UserMapper;
 import ru.tsu_taskgraph.core_api.repository.RefreshTokenRepository;
 import ru.tsu_taskgraph.core_api.repository.UserRepository;
-import ru.tsu_taskgraph.core_api.mapper.UserMapper;
 
 import java.time.Instant;
 

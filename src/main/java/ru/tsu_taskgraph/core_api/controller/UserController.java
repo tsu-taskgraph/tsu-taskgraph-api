@@ -71,7 +71,7 @@ public class UserController {
     @Operation(summary = "Получить файл аватарки")
     public ResponseEntity<Resource> getAvatar(@PathVariable String filename) {
         FileStorageService.StoredFile storedFile = userService.getAvatar(filename);
-        
+
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(storedFile.contentType()))
                 .body(storedFile.resource());

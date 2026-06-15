@@ -2,16 +2,16 @@ package ru.tsu_taskgraph.core_api.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.tsu_taskgraph.core_api.exception.BadRequestException;
 import ru.tsu_taskgraph.core_api.exception.FileStorageException;
 import ru.tsu_taskgraph.core_api.exception.ResourceNotFoundException;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import java.net.MalformedURLException;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -56,7 +56,8 @@ public class FileStorageService {
         }
     }
 
-    public record StoredFile(Resource resource, String contentType) {}
+    public record StoredFile(Resource resource, String contentType) {
+    }
 
     public StoredFile loadAvatar(String filename) {
         try {
@@ -78,7 +79,6 @@ public class FileStorageService {
             throw new FileStorageException("Не удалось определить тип контента для файла: " + filename, e);
         }
     }
-
 
 
     private String generateFilename(String contentType, String currentFilename) {

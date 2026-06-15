@@ -21,6 +21,7 @@ public class UserUtil {
      * Получает пользователя {@link User} из SecurityContext.
      * Этот пользователь содержит только основные данные, которые были в токене,
      * и может быть неактуальным по сравнению с состоянием в БД.
+     *
      * @return {@link User} из контекста безопасности
      */
     public User getCurrentUserFromContext() {
@@ -39,6 +40,7 @@ public class UserUtil {
     /**
      * Получает актуальное состояние пользователя из базы данных
      * на основе данных из SecurityContext.
+     *
      * @return {@link User} из базы данных
      */
     public User getCurrentUserFromDb() {
@@ -48,6 +50,7 @@ public class UserUtil {
 
     /**
      * Получает пользователя по его ID из базы данных.
+     *
      * @param id UUID пользователя
      * @return {@link User} из базы данных
      * @throws ResourceNotFoundException если пользователь не найден
