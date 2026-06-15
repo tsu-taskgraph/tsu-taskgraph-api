@@ -21,9 +21,9 @@ spring:
 
 springdoc:
   api-docs:
-    path: /v3/api-docs
+    path: /api/v3/api-docs
   swagger-ui:
-    path: /swagger-ui.html
+    path: /api/v1/swagger-ui.html
     # Включает сохранение JWT токена при перезагрузке страницы Swagger в браузере
     persistAuthorization: true
 
@@ -35,3 +35,9 @@ jwt:
 
 server:
   forward-headers-strategy: framework
+
+app:
+  storage:
+    local-dir: ${APP_STORAGE_LOCAL_DIR:local_data/avatars}
+  encryption:
+    key: ${APP_ENCRYPTION_KEY:12345678901234567890123456789012}

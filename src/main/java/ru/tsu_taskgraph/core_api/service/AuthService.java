@@ -10,8 +10,8 @@ import ru.tsu_taskgraph.core_api.dto.auth.RegisterRequest;
 import ru.tsu_taskgraph.core_api.entity.RefreshToken;
 import ru.tsu_taskgraph.core_api.entity.User;
 import ru.tsu_taskgraph.core_api.exception.AuthenticationException;
-import ru.tsu_taskgraph.core_api.exception.BadRequestException;
 import ru.tsu_taskgraph.core_api.exception.ResourceConflictException;
+import ru.tsu_taskgraph.core_api.mapper.UserMapper;
 import ru.tsu_taskgraph.core_api.repository.RefreshTokenRepository;
 import ru.tsu_taskgraph.core_api.repository.UserRepository;
 
@@ -25,6 +25,7 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
+    private final UserMapper userMapper;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -45,10 +46,10 @@ public class AuthService {
     @Transactional
     public AuthResponse login(LoginRequest request) {
         var user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new BadRequestException("Неверный email или пароль"));
+                .orElseThrow(() -> new AuthenticationException("Неверный email или пароль"));
 
         if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            throw new BadRequestException("Неверный email или пароль");
+            throw new AuthenticationException("Неверный email или пароль");
         }
 
         return generateAuthResponse(user);
@@ -90,9 +91,9 @@ public class AuthService {
                 .build();
         refreshTokenRepository.save(refreshTokenObj);
 
-//        TODO var userProfile = new UserProfile(
+        var userProfile = userMapper.toUserProfile(user);
 
-        return new AuthResponse(accessToken, refreshTokenStr);
+        return new AuthResponse(accessToken, refreshTokenStr, userProfile);
     }
 
     private RefreshToken verifyRefreshToken(RefreshToken token) {
