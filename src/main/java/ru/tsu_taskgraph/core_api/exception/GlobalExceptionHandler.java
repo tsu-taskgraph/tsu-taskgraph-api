@@ -47,7 +47,7 @@ public class GlobalExceptionHandler {
         return new ErrorResponse(ex.getMessage(), LocalDateTime.now());
     }
 
-    // Автоматическая обработка ошибок валидации @Valid (400 Bad Request)
+    // Обработка ошибок валидации @Valid (400 Bad Request)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ErrorResponse handleValidation(MethodArgumentNotValidException ex) {
@@ -57,6 +57,22 @@ public class GlobalExceptionHandler {
 
         log.warn("Validation error: {}", errors);
         return new ErrorResponse("Validation failed: [" + errors + "]", LocalDateTime.now());
+    }
+
+    // Обработка ошибок сохранения файлов (500 Internal Server Error)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(FileStorageException.class)
+    public ErrorResponse handleFileStorageException(FileStorageException ex) {
+        log.error("A file storage error occurred", ex);
+        return new ErrorResponse("Внутренняя ошибка сервера: не удалось сохранить файл", LocalDateTime.now());
+    }
+
+    // Обработка ошибок шифрования (500 Internal Server Error)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(CryptoException.class)
+    public ErrorResponse handleCryptoException(CryptoException ex) {
+        log.error("An encryption/decryption error occurred", ex);
+        return new ErrorResponse("Внутренняя ошибка сервера: не удалось выполнить криптографическую операцию", LocalDateTime.now());
     }
 
     // Fallback для непредвиденных серверных ошибок (500 Internal Server Error)

@@ -1,9 +1,84 @@
 package ru.tsu_taskgraph.core_api.mapper;
+
+import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.springframework.beans.factory.annotation.Autowired;
+import ru.tsu_taskgraph.core_api.dto.user.AiProviderSettings;
+import ru.tsu_taskgraph.core_api.dto.user.SavedAiSettings;
+import ru.tsu_taskgraph.core_api.dto.user.UpdateAiSettingsRequest;
 import ru.tsu_taskgraph.core_api.dto.user.UserProfile;
+import ru.tsu_taskgraph.core_api.entity.AiSettings;
+import ru.tsu_taskgraph.core_api.entity.ProviderSettings;
 import ru.tsu_taskgraph.core_api.entity.User;
+import ru.tsu_taskgraph.core_api.service.EncryptionService;
+
 @Mapper(componentModel = "spring")
 public abstract class UserMapper {
+
+    @Autowired
+    private EncryptionService encryptionService;
+
     public abstract UserProfile toUserProfile(User user);
+
+    @Mapping(target = "hasApiKey", expression = "java(aiSettings.getEncryptedApiKey() != null && !aiSettings.getEncryptedApiKey().isEmpty())")
+    public abstract SavedAiSettings toSavedAiSettings(AiSettings aiSettings);
+
+    public abstract AiProviderSettings toProviderSettingsDto(ProviderSettings providerSettings);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "aiSettings", ignore = true)
+    public abstract ProviderSettings toProviderSettingsEntity(AiProviderSettings dto);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "aiSettings", ignore = true)
+    public abstract void updateProviderSettingsFromDto(AiProviderSettings dto, @MappingTarget ProviderSettings entity);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "user", ignore = true)
+    @Mapping(target = "encryptedApiKey", ignore = true)
+    @Mapping(target = "apiKeyMasked", ignore = true)
+    @Mapping(target = "providerSettings", ignore = true)
+    public abstract void updateAiSettingsFromRequest(UpdateAiSettingsRequest request, @MappingTarget AiSettings aiSettings);
+
+    @AfterMapping
+    protected void afterUpdateAiSettingsFromRequest(UpdateAiSettingsRequest request, @MappingTarget AiSettings aiSettings) {
+        updateApiKey(aiSettings, request.getApiKey());
+        updateProviderSettings(aiSettings, request.getProviderSettings());
+    }
+
+    private void updateApiKey(AiSettings aiSettings, String apiKey) {
+        if (apiKey != null) {
+            aiSettings.setEncryptedApiKey(encryptionService.encrypt(apiKey));
+            aiSettings.setApiKeyMasked(maskApiKey(apiKey));
+        } else {
+            aiSettings.setEncryptedApiKey(null);
+            aiSettings.setApiKeyMasked(null);
+        }
+    }
+
+    private String maskApiKey(String apiKey) {
+        if (apiKey.length() > 7) {
+            return apiKey.substring(0, 3) + "..." + apiKey.substring(apiKey.length() - 4);
+        } else if (apiKey.length() > 3) {
+            return apiKey.substring(0, 3) + "...";
+        } else {
+            return apiKey + "...";
+        }
+    }
+
+    private void updateProviderSettings(AiSettings aiSettings, AiProviderSettings providerSettingsDto) {
+        if (providerSettingsDto != null) {
+            ProviderSettings providerSettings = aiSettings.getProviderSettings();
+            if (providerSettings == null) {
+                providerSettings = new ProviderSettings();
+                providerSettings.setAiSettings(aiSettings);
+                aiSettings.setProviderSettings(providerSettings);
+            }
+            updateProviderSettingsFromDto(providerSettingsDto, providerSettings);
+        } else {
+            aiSettings.setProviderSettings(null);
+        }
+    }
 }
