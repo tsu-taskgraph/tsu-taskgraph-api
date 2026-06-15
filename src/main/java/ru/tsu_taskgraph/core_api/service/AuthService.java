@@ -14,6 +14,7 @@ import ru.tsu_taskgraph.core_api.exception.BadRequestException;
 import ru.tsu_taskgraph.core_api.exception.ResourceConflictException;
 import ru.tsu_taskgraph.core_api.repository.RefreshTokenRepository;
 import ru.tsu_taskgraph.core_api.repository.UserRepository;
+import ru.tsu_taskgraph.core_api.mapper.UserMapper;
 
 import java.time.Instant;
 
@@ -25,6 +26,7 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
+    private final UserMapper userMapper;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -90,9 +92,9 @@ public class AuthService {
                 .build();
         refreshTokenRepository.save(refreshTokenObj);
 
-//        TODO var userProfile = new UserProfile(
+        var userProfile = userMapper.toUserProfile(user);
 
-        return new AuthResponse(accessToken, refreshTokenStr);
+        return new AuthResponse(accessToken, refreshTokenStr, userProfile);
     }
 
     private RefreshToken verifyRefreshToken(RefreshToken token) {

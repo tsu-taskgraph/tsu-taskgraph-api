@@ -3,6 +3,7 @@ package ru.tsu_taskgraph.core_api.config;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -50,13 +51,24 @@ public class SecurityConfig {
                         })
                 )
                 .authorizeHttpRequests(auth -> auth
+                        //swagger
                         .requestMatchers(
-                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html"
+                                "/api/v3/api-docs/**", "/api/v1/swagger-ui/**", "/api/v1/swagger-ui.html"
                         ).permitAll()
                         .requestMatchers("/test").authenticated()
 
+                        //auth
+                        .requestMatchers(
+                                "/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/refresh"
+                        ).permitAll()
+                        .requestMatchers("/api/v1/auth/logout").authenticated()
 
-                        .anyRequest().permitAll()
+                        //user
+                        .requestMatchers(HttpMethod.GET, "/api/v1/users/me/avatar/*").permitAll()
+                        .requestMatchers("/api/v1/users/me/**").authenticated()
+                        .requestMatchers("/api/v1/ai-providers/**").authenticated()
+
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
