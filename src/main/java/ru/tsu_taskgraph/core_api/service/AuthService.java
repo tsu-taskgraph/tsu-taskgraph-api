@@ -47,10 +47,10 @@ public class AuthService {
     @Transactional
     public AuthResponse login(LoginRequest request) {
         var user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new BadRequestException("Неверный email или пароль"));
+                .orElseThrow(() -> new AuthenticationException("Неверный email или пароль"));
 
         if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            throw new BadRequestException("Неверный email или пароль");
+            throw new AuthenticationException("Неверный email или пароль");
         }
 
         return generateAuthResponse(user);
