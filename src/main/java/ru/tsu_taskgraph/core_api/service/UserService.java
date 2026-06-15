@@ -89,7 +89,7 @@ public class UserService {
         return userMapper.toUserProfile(dbUser);
     }
 
-    public Resource getAvatar(String filename) {
+    public FileStorageService.StoredFile getAvatar(String filename) {
         return fileStorageService.loadAvatar(filename);
     }
 

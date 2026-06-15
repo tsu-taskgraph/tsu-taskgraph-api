@@ -56,18 +56,26 @@ public class FileStorageService {
         }
     }
 
-    public Resource loadAvatar(String filename) {
+    public record StoredFile(Resource resource, String contentType) {}
+
+    public StoredFile loadAvatar(String filename) {
         try {
             Path filePath = storagePath.resolve(filename).normalize();
             Resource resource = new UrlResource(filePath.toUri());
 
             if (resource.exists() && resource.isReadable()) {
-                return resource;
+                String contentType = Files.probeContentType(filePath);
+                if (contentType == null) {
+                    contentType = "application/octet-stream";
+                }
+                return new StoredFile(resource, contentType);
             } else {
                 throw new ResourceNotFoundException("Аватарка не найдена: " + filename);
             }
         } catch (MalformedURLException e) {
             throw new ResourceNotFoundException("Аватарка не найдена (неверный путь): " + filename, e);
+        } catch (IOException e) {
+            throw new FileStorageException("Не удалось определить тип контента для файла: " + filename, e);
         }
     }
 

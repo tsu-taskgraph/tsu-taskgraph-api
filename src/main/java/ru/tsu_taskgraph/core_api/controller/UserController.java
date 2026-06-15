@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.tsu_taskgraph.core_api.config.OpenApiConfig;
@@ -15,6 +16,7 @@ import ru.tsu_taskgraph.core_api.dto.user.SavedAiSettings;
 import ru.tsu_taskgraph.core_api.dto.user.UpdateAiSettingsRequest;
 import ru.tsu_taskgraph.core_api.dto.user.UpdateProfileRequest;
 import ru.tsu_taskgraph.core_api.dto.user.UserProfile;
+import ru.tsu_taskgraph.core_api.service.FileStorageService;
 import ru.tsu_taskgraph.core_api.service.UserService;
 
 @RestController
@@ -66,10 +68,13 @@ public class UserController {
     }
 
     @GetMapping(value = "/avatar/{filename}")
-    @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Получить файл аватарки")
-    public Resource getAvatar(@PathVariable String filename) {
-        return userService.getAvatar(filename);
+    public ResponseEntity<Resource> getAvatar(@PathVariable String filename) {
+        FileStorageService.StoredFile storedFile = userService.getAvatar(filename);
+        
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(storedFile.contentType()))
+                .body(storedFile.resource());
     }
 
     @GetMapping("/ai-settings")
