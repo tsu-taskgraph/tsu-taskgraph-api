@@ -3,3 +3,5 @@ databaseChangeLog:
       file: db/changelog/changes/1-user-refreshToken-tables.xml
   - include:
       file: db/changelog/changes/2-upd-user-add-ai-provider-settings.xml
+  - include:
+      file: db/changelog/changes/3-create-project-tables.xml
