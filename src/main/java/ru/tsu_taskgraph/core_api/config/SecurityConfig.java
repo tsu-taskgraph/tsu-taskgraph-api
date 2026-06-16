@@ -25,6 +25,9 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
     private final HandlerExceptionResolver exceptionResolver;
 
+    @org.springframework.beans.factory.annotation.Value("${app.cors.allowed-origins}")
+    private List<String> allowedOrigins;
+
     public SecurityConfig(
             @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver,
             JwtFilter jwtFilter
@@ -79,9 +82,7 @@ public class SecurityConfig {
     public CorsConfiguration corsConfig() {
         var config = new CorsConfiguration();
 
-        config.setAllowedOriginPatterns(List.of(
-                "http://localhost:*"
-        ));
+        config.setAllowedOriginPatterns(allowedOrigins);
         config.setAllowedMethods(List.of("*"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

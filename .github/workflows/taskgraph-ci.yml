@@ -85,6 +85,7 @@ jobs:
             echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
             echo "APP_ENCRYPTION_KEY=${{ secrets.APP_ENCRYPTION_KEY }}" >> .env
             echo "APP_STORAGE_LOCAL_DIR=${{ secrets.APP_STORAGE_LOCAL_DIR }}" >> .env
+            echo "APP_CORS_ALLOWED_ORIGINS=${{ secrets.APP_CORS_ALLOWED_ORIGINS }}" >> .env
             
             echo "📥 Pulling latest images..."
             docker compose -f compose.prod.yaml pull api

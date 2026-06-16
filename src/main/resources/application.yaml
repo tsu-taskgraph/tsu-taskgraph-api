@@ -37,6 +37,8 @@ server:
   forward-headers-strategy: framework
 
 app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:*}
   storage:
     local-dir: ${APP_STORAGE_LOCAL_DIR:local_data/avatars}
   encryption:
