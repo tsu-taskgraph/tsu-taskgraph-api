@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+
+    <changeSet id="1781626927780-1" author="Administrator">
+        <createTable tableName="project_members">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_project_members"/>
+            </column>
+            <column name="project_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="joined_at" type="DATETIME"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1781626927780-2" author="Administrator">
+        <createTable tableName="projects">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_projects"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="tech_stack" type="text[]"/>
+            <column name="status" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="owner_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="team_size" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ai_estimate" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_estimated_hours" type="DOUBLE"/>
+            <column name="total_logged_hours" type="DOUBLE"/>
+            <column name="completion_percent" type="DOUBLE"/>
+            <column name="created_at" type="DATETIME"/>
+            <column name="updated_at" type="DATETIME"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1781626927780-3" author="Administrator">
+        <addForeignKeyConstraint baseColumnNames="owner_id" baseTableName="projects"
+                                 constraintName="FK_PROJECTS_ON_OWNER" referencedColumnNames="id"
+                                 referencedTableName="users"/>
+    </changeSet>
+    <changeSet id="1781626927780-4" author="Administrator">
+        <addForeignKeyConstraint baseColumnNames="project_id" baseTableName="project_members"
+                                 constraintName="FK_PROJECT_MEMBERS_ON_PROJECT" referencedColumnNames="id"
+                                 referencedTableName="projects"/>
+    </changeSet>
+    <changeSet id="1781626927780-5" author="Administrator">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="project_members"
+                                 constraintName="FK_PROJECT_MEMBERS_ON_USER" referencedColumnNames="id"
+                                 referencedTableName="users"/>
+    </changeSet>
+</databaseChangeLog>
