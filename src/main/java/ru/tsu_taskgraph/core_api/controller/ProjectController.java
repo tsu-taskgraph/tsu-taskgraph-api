@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.tsu_taskgraph.core_api.config.OpenApiConfig;
 import ru.tsu_taskgraph.core_api.dto.project.CreateProjectRequest;
@@ -59,6 +60,7 @@ public class ProjectController {
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("@projectSecurity.hasAccess(#id)")
     @Operation(
             summary = "Получить проект",
             security = @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
@@ -69,6 +71,7 @@ public class ProjectController {
 
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("@projectSecurity.isOwnerOrAdmin(#id)")
     @Operation(
             summary = "Обновить метаданные (OWNER/ADMIN)",
             security = @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
@@ -82,6 +85,7 @@ public class ProjectController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("@projectSecurity.isOwner(#id)")
     @Operation(
             summary = "Удалить проект (только OWNER)",
             security = @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
@@ -92,6 +96,7 @@ public class ProjectController {
 
     @GetMapping("/{id}/members")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("@projectSecurity.hasAccess(#id)")
     @Operation(
             summary = "Список участников проекта",
             security = @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
@@ -102,6 +107,7 @@ public class ProjectController {
 
     @PostMapping("/{id}/members")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("@projectSecurity.isOwnerOrAdmin(#id)")
     @Operation(
             summary = "Пригласить участника (OWNER/ADMIN)",
             security = @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
@@ -115,6 +121,7 @@ public class ProjectController {
 
     @PatchMapping("/{id}/members/{userId}")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("@projectSecurity.isOwner(#id)")
     @Operation(
             summary = "Изменить роль участника (только OWNER)",
             security = @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
@@ -129,6 +136,7 @@ public class ProjectController {
 
     @DeleteMapping("/{id}/members/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("@projectSecurity.isOwner(#id) or principal.id == #userId")
     @Operation(
             summary = "Удалить участника (OWNER или сам пользователь)",
             security = @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
@@ -142,6 +150,7 @@ public class ProjectController {
 
     @GetMapping("/{id}/graph")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("@projectSecurity.hasAccess(#id)")
     @Operation(
             summary = "Полный граф (узлы + рёбра + назначения)",
             security = @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
