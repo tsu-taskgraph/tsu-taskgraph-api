@@ -15,9 +15,9 @@ import java.util.List;
 public class CreateProjectRequest {
     @NotBlank(message = "Имя проекта не может быть пустым")
     private String name;
-    
+
     private String description;
-    
+
     private List<String> techStack;
 
     private Boolean aiEstimate;

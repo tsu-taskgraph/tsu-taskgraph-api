@@ -43,7 +43,7 @@ public class ProjectSecurityEvaluator {
             Project project = projectUtil.getProjectById(projectId);
 
             Optional<ProjectMember> memberOpt = projectMemberRepository.findByProjectAndUser(project, currentUser);
-            
+
             if (memberOpt.isEmpty()) {
                 return false;
             }

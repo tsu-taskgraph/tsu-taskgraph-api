@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, UUID> {
-    
+
     @Query("SELECT DISTINCT p FROM Project p LEFT JOIN p.members m WHERE p.owner.id = :userId OR m.user.id = :userId")
     Page<Project> findAllUserProjects(@Param("userId") UUID userId, Pageable pageable);
 }

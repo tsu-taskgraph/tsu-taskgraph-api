@@ -13,7 +13,10 @@ import java.util.UUID;
 @Repository
 public interface ProjectMemberRepository extends JpaRepository<ProjectMember, UUID> {
     List<ProjectMember> findByProject(Project project);
+
     List<ProjectMember> findByUser(User user);
+
     Optional<ProjectMember> findByProjectAndUser(Project project, User user);
+
     boolean existsByProjectAndUser(Project project, User user);
 }

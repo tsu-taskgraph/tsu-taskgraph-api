@@ -5,15 +5,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.tsu_taskgraph.core_api.dto.project.CreateProjectRequest;
-import ru.tsu_taskgraph.core_api.dto.project.InviteMemberRequest;
-import ru.tsu_taskgraph.core_api.dto.project.ProjectDto;
-import ru.tsu_taskgraph.core_api.dto.project.ProjectMemberDto;
-import ru.tsu_taskgraph.core_api.dto.project.UpdateMemberRoleRequest;
-import ru.tsu_taskgraph.core_api.dto.project.UpdateProjectRequest;
+import ru.tsu_taskgraph.core_api.dto.project.*;
 import ru.tsu_taskgraph.core_api.entity.*;
 import ru.tsu_taskgraph.core_api.exception.ResourceConflictException;
-import ru.tsu_taskgraph.core_api.exception.ResourceNotFoundException;
 import ru.tsu_taskgraph.core_api.mapper.ProjectMapper;
 import ru.tsu_taskgraph.core_api.repository.ProjectMemberRepository;
 import ru.tsu_taskgraph.core_api.repository.ProjectRepository;
@@ -111,7 +105,7 @@ public class ProjectService {
                 .build();
 
         member = projectMemberRepository.save(member);
-        
+
         // Обновляем размер команды
         project.setTeamSize(project.getTeamSize() + 1);
         projectRepository.save(project);
@@ -124,8 +118,7 @@ public class ProjectService {
         Project project = projectUtil.getProjectById(projectId);
         User user = userUtil.getUserById(userId);
 
-        ProjectMember member = projectMemberRepository.findByProjectAndUser(project, user)
-                .orElseThrow(() -> new ResourceNotFoundException("Участник не найден в проекте"));
+        ProjectMember member = projectUtil.getProjectMember(project, user);
 
         member.setRole(request.getRole());
         member = projectMemberRepository.save(member);
@@ -138,11 +131,10 @@ public class ProjectService {
         Project project = projectUtil.getProjectById(projectId);
         User user = userUtil.getUserById(userId);
 
-        ProjectMember member = projectMemberRepository.findByProjectAndUser(project, user)
-                .orElseThrow(() -> new ResourceNotFoundException("Участник не найден в проекте"));
+        ProjectMember member = projectUtil.getProjectMember(project, user);
 
         projectMemberRepository.delete(member);
-        
+
         // Обновляем размер команды
         project.setTeamSize(Math.max(1, project.getTeamSize() - 1));
         projectRepository.save(project);
