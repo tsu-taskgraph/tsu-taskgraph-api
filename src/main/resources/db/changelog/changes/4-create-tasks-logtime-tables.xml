@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+
+    <changeSet id="1781680689767-1" author="Administrator">
+        <createTable tableName="task_assignees">
+            <column name="task_id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_task_assignees"/>
+            </column>
+            <column name="user_id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_task_assignees"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1781680689767-2" author="Administrator">
+        <createTable tableName="tasks">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_tasks"/>
+            </column>
+            <column name="project_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="status" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="category" type="VARCHAR(255)"/>
+            <column name="layer" type="INT"/>
+            <column name="position_x" type="DOUBLE"/>
+            <column name="position_y" type="DOUBLE"/>
+            <column name="completion_percent" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="estimated_hours" type="DOUBLE"/>
+            <column name="logged_hours" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_date" type="DATE"/>
+            <column name="due_date" type="DATE"/>
+            <column name="wiki_page_id" type="UUID"/>
+            <column name="enrichment" type="jsonb"/>
+            <column name="created_at" type="DATETIME"/>
+            <column name="updated_at" type="DATETIME"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1781680689767-3" author="Administrator">
+        <createTable tableName="time_logs">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_time_logs"/>
+            </column>
+            <column name="task_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="hours" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="comment" type="TEXT"/>
+            <column name="logged_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1781680689767-4" author="Administrator">
+        <addForeignKeyConstraint baseColumnNames="project_id" baseTableName="tasks" constraintName="FK_TASKS_ON_PROJECT"
+                                 referencedColumnNames="id" referencedTableName="projects"/>
+    </changeSet>
+    <changeSet id="1781680689767-5" author="Administrator">
+        <addForeignKeyConstraint baseColumnNames="task_id" baseTableName="time_logs"
+                                 constraintName="FK_TIME_LOGS_ON_TASK" referencedColumnNames="id"
+                                 referencedTableName="tasks"/>
+    </changeSet>
+    <changeSet id="1781680689767-6" author="Administrator">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="time_logs"
+                                 constraintName="FK_TIME_LOGS_ON_USER" referencedColumnNames="id"
+                                 referencedTableName="users"/>
+    </changeSet>
+    <changeSet id="1781680689767-7" author="Administrator">
+        <addForeignKeyConstraint baseColumnNames="task_id" baseTableName="task_assignees"
+                                 constraintName="fk_tasass_on_task" referencedColumnNames="id"
+                                 referencedTableName="tasks"/>
+    </changeSet>
+    <changeSet id="1781680689767-8" author="Administrator">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="task_assignees"
+                                 constraintName="fk_tasass_on_user" referencedColumnNames="id"
+                                 referencedTableName="users"/>
+    </changeSet>
+</databaseChangeLog>
