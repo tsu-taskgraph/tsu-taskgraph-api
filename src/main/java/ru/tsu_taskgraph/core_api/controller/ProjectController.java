@@ -12,12 +12,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.tsu_taskgraph.core_api.config.OpenApiConfig;
 import ru.tsu_taskgraph.core_api.dto.project.CreateProjectRequest;
+import ru.tsu_taskgraph.core_api.dto.project.InviteMemberRequest;
 import ru.tsu_taskgraph.core_api.dto.project.ProjectDto;
+import ru.tsu_taskgraph.core_api.dto.project.ProjectMemberDto;
+import ru.tsu_taskgraph.core_api.dto.project.UpdateMemberRoleRequest;
 import ru.tsu_taskgraph.core_api.dto.project.UpdateProjectRequest;
 import ru.tsu_taskgraph.core_api.entity.User;
 import ru.tsu_taskgraph.core_api.service.ProjectService;
 import ru.tsu_taskgraph.core_api.util.UserUtil;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -84,6 +88,56 @@ public class ProjectController {
     )
     public void deleteProject(@PathVariable UUID id) {
         projectService.deleteProject(id);
+    }
+
+    @GetMapping("/{id}/members")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(
+            summary = "Список участников проекта",
+            security = @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
+    )
+    public List<ProjectMemberDto> listProjectMembers(@PathVariable UUID id) {
+        return projectService.listProjectMembers(id);
+    }
+
+    @PostMapping("/{id}/members")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(
+            summary = "Пригласить участника (OWNER/ADMIN)",
+            security = @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
+    )
+    public ProjectMemberDto inviteMember(
+            @PathVariable UUID id,
+            @Valid @RequestBody InviteMemberRequest request
+    ) {
+        return projectService.inviteMember(id, request);
+    }
+
+    @PatchMapping("/{id}/members/{userId}")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(
+            summary = "Изменить роль участника (только OWNER)",
+            security = @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
+    )
+    public ProjectMemberDto updateMemberRole(
+            @PathVariable UUID id,
+            @PathVariable UUID userId,
+            @Valid @RequestBody UpdateMemberRoleRequest request
+    ) {
+        return projectService.updateMemberRole(id, userId, request);
+    }
+
+    @DeleteMapping("/{id}/members/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(
+            summary = "Удалить участника (OWNER или сам пользователь)",
+            security = @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
+    )
+    public void removeMember(
+            @PathVariable UUID id,
+            @PathVariable UUID userId
+    ) {
+        projectService.removeMember(id, userId);
     }
 
     @GetMapping("/{id}/graph")

@@ -59,4 +59,16 @@ public class UserUtil {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь с id=" + id + " не найден в базе данных"));
     }
+
+    /**
+     * Получает пользователя по его email из базы данных.
+     *
+     * @param email Email пользователя
+     * @return {@link User} из базы данных
+     * @throws ResourceNotFoundException если пользователь не найден
+     */
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Пользователь с email=" + email + " не найден в базе данных"));
+    }
 }

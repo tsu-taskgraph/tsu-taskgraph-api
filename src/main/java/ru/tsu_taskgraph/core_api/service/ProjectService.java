@@ -6,14 +6,21 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.tsu_taskgraph.core_api.dto.project.CreateProjectRequest;
+import ru.tsu_taskgraph.core_api.dto.project.InviteMemberRequest;
 import ru.tsu_taskgraph.core_api.dto.project.ProjectDto;
+import ru.tsu_taskgraph.core_api.dto.project.ProjectMemberDto;
+import ru.tsu_taskgraph.core_api.dto.project.UpdateMemberRoleRequest;
 import ru.tsu_taskgraph.core_api.dto.project.UpdateProjectRequest;
 import ru.tsu_taskgraph.core_api.entity.*;
+import ru.tsu_taskgraph.core_api.exception.ResourceConflictException;
+import ru.tsu_taskgraph.core_api.exception.ResourceNotFoundException;
 import ru.tsu_taskgraph.core_api.mapper.ProjectMapper;
+import ru.tsu_taskgraph.core_api.repository.ProjectMemberRepository;
 import ru.tsu_taskgraph.core_api.repository.ProjectRepository;
 import ru.tsu_taskgraph.core_api.util.ProjectUtil;
 import ru.tsu_taskgraph.core_api.util.UserUtil;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -42,7 +49,13 @@ public class ProjectService {
 
         project = projectRepository.save(project);
 
-        //TODO добавление owner в проект
+        ProjectMember ownerMember = ProjectMember.builder()
+                .project(project)
+                .user(owner)
+                .role(ProjectRole.OWNER)
+                .build();
+
+        projectMemberRepository.save(ownerMember);
 
         return projectMapper.toDto(project);
     }
@@ -72,5 +85,66 @@ public class ProjectService {
     @Transactional
     public void deleteProject(UUID projectId) {
         projectRepository.delete(projectUtil.getProjectById(projectId));
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProjectMemberDto> listProjectMembers(UUID projectId) {
+        Project project = projectUtil.getProjectById(projectId);
+        return projectMemberRepository.findByProject(project).stream()
+                .map(projectMapper::toMemberDto)
+                .toList();
+    }
+
+    @Transactional
+    public ProjectMemberDto inviteMember(UUID projectId, InviteMemberRequest request) {
+        Project project = projectUtil.getProjectById(projectId);
+        User user = userUtil.getUserByEmail(request.getEmail());
+
+        if (projectMemberRepository.existsByProjectAndUser(project, user)) {
+            throw new ResourceConflictException("Пользователь уже является участником проекта");
+        }
+
+        ProjectMember member = ProjectMember.builder()
+                .project(project)
+                .user(user)
+                .role(request.getRole())
+                .build();
+
+        member = projectMemberRepository.save(member);
+        
+        // Обновляем размер команды
+        project.setTeamSize(project.getTeamSize() + 1);
+        projectRepository.save(project);
+
+        return projectMapper.toMemberDto(member);
+    }
+
+    @Transactional
+    public ProjectMemberDto updateMemberRole(UUID projectId, UUID userId, UpdateMemberRoleRequest request) {
+        Project project = projectUtil.getProjectById(projectId);
+        User user = userUtil.getUserById(userId);
+
+        ProjectMember member = projectMemberRepository.findByProjectAndUser(project, user)
+                .orElseThrow(() -> new ResourceNotFoundException("Участник не найден в проекте"));
+
+        member.setRole(request.getRole());
+        member = projectMemberRepository.save(member);
+
+        return projectMapper.toMemberDto(member);
+    }
+
+    @Transactional
+    public void removeMember(UUID projectId, UUID userId) {
+        Project project = projectUtil.getProjectById(projectId);
+        User user = userUtil.getUserById(userId);
+
+        ProjectMember member = projectMemberRepository.findByProjectAndUser(project, user)
+                .orElseThrow(() -> new ResourceNotFoundException("Участник не найден в проекте"));
+
+        projectMemberRepository.delete(member);
+        
+        // Обновляем размер команды
+        project.setTeamSize(Math.max(1, project.getTeamSize() - 1));
+        projectRepository.save(project);
     }
 }
