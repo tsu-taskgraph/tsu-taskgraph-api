@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+
+    <changeSet id="1781763788238-1" author="Administrator">
+        <createTable tableName="edges">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_edges"/>
+            </column>
+            <column name="project_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="source_task_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="target_task_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1781763788238-2" author="Administrator">
+        <addForeignKeyConstraint baseColumnNames="project_id" baseTableName="edges" constraintName="FK_EDGES_ON_PROJECT"
+                                 referencedColumnNames="id" referencedTableName="projects"/>
+    </changeSet>
+    <changeSet id="1781763788238-3" author="Administrator">
+        <addForeignKeyConstraint baseColumnNames="source_task_id" baseTableName="edges"
+                                 constraintName="FK_EDGES_ON_SOURCE_TASK" referencedColumnNames="id"
+                                 referencedTableName="tasks"/>
+    </changeSet>
+    <changeSet id="1781763788238-4" author="Administrator">
+        <addForeignKeyConstraint baseColumnNames="target_task_id" baseTableName="edges"
+                                 constraintName="FK_EDGES_ON_TARGET_TASK" referencedColumnNames="id"
+                                 referencedTableName="tasks"/>
+    </changeSet>
+</databaseChangeLog>
