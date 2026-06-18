@@ -4,28 +4,30 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.tsu_taskgraph.core_api.dto.project.ProjectGraphResponse;
 import ru.tsu_taskgraph.core_api.dto.task.*;
 import ru.tsu_taskgraph.core_api.entity.*;
+import ru.tsu_taskgraph.core_api.exception.BadRequestException;
 import ru.tsu_taskgraph.core_api.mapper.TaskMapper;
+import ru.tsu_taskgraph.core_api.repository.EdgeRepository;
 import ru.tsu_taskgraph.core_api.repository.TaskRepository;
 import ru.tsu_taskgraph.core_api.repository.UserRepository;
 import ru.tsu_taskgraph.core_api.repository.specification.TaskSpecification;
 import ru.tsu_taskgraph.core_api.util.ProjectUtil;
 import ru.tsu_taskgraph.core_api.util.TaskUtil;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
+    private final EdgeRepository edgeRepository;
     private final TaskMapper taskMapper;
     private final TimeLogService timeLogService;
+    private final TaskStatusService taskStatusService;
+    private final GraphLayerService graphLayerService;
+    private final ProjectGraphService projectGraphService;
     private final ProjectUtil projectUtil;
     private final TaskUtil taskUtil;
 
@@ -45,13 +47,15 @@ public class TaskService {
                 .positionY(request.getPositionY())
                 .build();
         task = taskRepository.save(task);
-        return taskMapper.toNode(task);
+        Map<UUID, Integer> layers = graphLayerService.calculateLayers(projectId);
+        return taskMapper.toNode(task, layers);
     }
 
     @Transactional(readOnly = true)
     public TaskNode getTask(UUID taskId) {
         Task task = taskUtil.getTaskById(taskId);
-        return taskMapper.toNode(task);
+        Map<UUID, Integer> layers = graphLayerService.calculateLayers(task.getProject().getId());
+        return taskMapper.toNode(task, layers);
     }
 
     @Transactional(readOnly = true)
@@ -63,51 +67,63 @@ public class TaskService {
                 .and(category != null ? TaskSpecification.categoryEquals(category) : null);
 
         List<Task> tasks = taskRepository.findAll(spec);
-        return taskMapper.toNodeList(tasks);
+        Map<UUID, Integer> layers = graphLayerService.calculateLayers(projectId);
+        return taskMapper.toNodeList(tasks, layers);
     }
 
     @Transactional
     public TaskNode updateTask(UUID taskId, UpdateTaskRequest request) {
         Task task = taskUtil.getTaskById(taskId);
         taskMapper.updateFromRequest(request, task);
-        return taskMapper.toNode(task);
+        Map<UUID, Integer> layers = graphLayerService.calculateLayers(task.getProject().getId());
+        return taskMapper.toNode(task, layers);
     }
 
     @Transactional
     public TaskStatusUpdateResponse updateTaskStatus(UUID taskId, UpdateTaskStatusRequest request, User currentUser) {
         Task task = taskUtil.getTaskById(taskId);
-
+        TaskStatus oldStatus = task.getStatus();
         task.setStatus(request.getStatus());
 
         if (request.getLoggedHours() != null && request.getLoggedHours() > 0) {
-            CreateTimeLogRequest timeLogRequest = new CreateTimeLogRequest(request.getLoggedHours(), request.getComment());
-            timeLogService.createTimeLog(task.getId(), timeLogRequest, currentUser);
+            timeLogService.createTimeLog(task.getId(), new CreateTimeLogRequest(request.getLoggedHours(), request.getComment()), currentUser);
         }
 
-        task = taskRepository.save(task);
+        List<TaskNode> unlockedTasks = new ArrayList<>();
+        if ((task.getStatus() == TaskStatus.COMPLETED || task.getStatus() == TaskStatus.SKIPPED) && oldStatus != task.getStatus()) {
+            unlockedTasks = taskStatusService.updateDependentTasks(task.getId());
+        }
 
-        // TODO: Implement logic to find and return unlocked tasks and the updated graph
+        Map<UUID, Integer> layers = graphLayerService.calculateLayers(task.getProject().getId());
         return TaskStatusUpdateResponse.builder()
-                .updatedTask(taskMapper.toNode(task))
-                .unlockedTasks(List.of())
-                .graph(new ProjectGraphResponse(task.getProject().getId()))
+                .updatedTask(taskMapper.toNode(task, layers))
+                .unlockedTasks(unlockedTasks)
+                .graph(projectGraphService.getProjectGraph(task.getProject().getId()))
                 .build();
     }
 
     @Transactional
     public TaskNode assignTask(UUID taskId, AssignTaskRequest request) {
         Task task = taskUtil.getTaskById(taskId);
-
         Set<User> assignees = new HashSet<>(userRepository.findAllById(request.getUserIds()));
         task.setAssignees(assignees);
-
-        task = taskRepository.save(task);
-        return taskMapper.toNode(task);
+        Map<UUID, Integer> layers = graphLayerService.calculateLayers(task.getProject().getId());
+        return taskMapper.toNode(task, layers);
     }
 
     @Transactional
     public void deleteTask(UUID taskId) {
-        // TODO: Add logic to check for dependent tasks
-        taskRepository.deleteById(taskId);
+        Task taskToDelete = taskUtil.getTaskById(taskId);
+
+        if (edgeRepository.existsBySourceTask(taskToDelete)) {
+            throw new BadRequestException("Нельзя удалить задачу, от которой зависят другие задачи.");
+        }
+
+        List<Edge> parentEdges = edgeRepository.findByTargetTask(taskToDelete);
+        List<UUID> parentIds = parentEdges.stream().map(edge -> edge.getSourceTask().getId()).toList();
+
+        taskRepository.delete(taskToDelete);
+
+        parentIds.forEach(taskStatusService::updateDependentTasks);
     }
 }

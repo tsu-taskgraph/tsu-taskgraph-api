@@ -94,4 +94,10 @@
                                  constraintName="fk_tasass_on_user" referencedColumnNames="id"
                                  referencedTableName="users"/>
     </changeSet>
+
+
+    <!--    удалил колонку, вычисляется налету-->
+    <changeSet id="1781799504532-2" author="Administrator">
+        <dropColumn columnName="layer" tableName="tasks"/>
+    </changeSet>
 </databaseChangeLog>

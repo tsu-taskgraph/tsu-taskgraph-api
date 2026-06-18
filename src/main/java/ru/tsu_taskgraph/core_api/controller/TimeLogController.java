@@ -1,6 +1,8 @@
 package ru.tsu_taskgraph.core_api.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,14 @@ public class TimeLogController {
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Залогировать время (MEMBER и выше)", operationId = "createTimeLog")
     @PreAuthorize("@projectSecurity.canAccessTask(#taskId, 'MEMBER')")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Время успешно залогировано"),
+            @ApiResponse(responseCode = "400", description = "Некорректный запрос. Возможное сообщение (от валидации):\n" +
+                    "* 'hours must be greater than 0'"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен (сообщение: 'Доступ запрещен')"),
+            @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможное сообщение:\n" +
+                    "* 'Задача с id=123 не найдена'")
+    })
     public TimeLogDto createTimeLog(@PathVariable UUID taskId,
                                     @RequestBody CreateTimeLogRequest request,
                                     @AuthenticationPrincipal User currentUser) {
@@ -39,6 +49,12 @@ public class TimeLogController {
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Журнал трудозатрат по задаче", operationId = "listTimeLogs")
     @PreAuthorize("@projectSecurity.canAccessTask(#taskId, 'VIEWER')")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Журнал трудозатрат получен"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен (сообщение: 'Доступ запрещен')"),
+            @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможное сообщение:\n" +
+                    "* 'Задача с id=123 не найдена'")
+    })
     public List<TimeLogDto> listTimeLogs(@PathVariable UUID taskId) {
         return timeLogService.getTimeLogsByTask(taskId);
     }
@@ -47,6 +63,15 @@ public class TimeLogController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Удалить запись о времени (автор или ADMIN/OWNER)", operationId = "deleteTimeLog")
     @PreAuthorize("@projectSecurity.canDeleteTimeLog(#logId, #taskId)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Запись о времени успешно удалена"),
+            @ApiResponse(responseCode = "400", description = "Некорректный запрос. Возможное сообщение:\n" +
+                    "* 'Трудозатраты с id=123 не относятся к Задаче с id=123'"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен (сообщение: 'Доступ запрещен')"),
+            @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможные сообщения:\n" +
+                    "* 'Трудозатраты с id=123 не найдены'\n" +
+                    "* 'Задача с id=123 не найдена'")
+    })
     public void deleteTimeLog(@PathVariable UUID taskId, @PathVariable UUID logId) {
         timeLogService.deleteTimeLog(taskId, logId);
     }

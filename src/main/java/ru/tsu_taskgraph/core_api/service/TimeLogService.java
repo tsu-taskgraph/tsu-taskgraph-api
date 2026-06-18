@@ -39,7 +39,7 @@ public class TimeLogService {
                 .build();
 
         task.setLoggedHours(task.getLoggedHours() + request.getHours());
-        
+
         timeLog = timeLogRepository.save(timeLog);
         return timeLogMapper.toDto(timeLog);
     }

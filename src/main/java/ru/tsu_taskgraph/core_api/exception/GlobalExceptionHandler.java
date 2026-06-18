@@ -1,5 +1,6 @@
 package ru.tsu_taskgraph.core_api.exception;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     // Обработка 400 Bad Request
+    @Hidden
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(BadRequestException.class)
     public ErrorResponse handleCustomBadRequest(BadRequestException ex) {
@@ -25,6 +27,7 @@ public class GlobalExceptionHandler {
     }
 
     // Обработка 401 Unauthorized
+    @Hidden
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(AuthenticationException.class)
     public ErrorResponse handleAuthException(AuthenticationException ex) {
@@ -33,6 +36,7 @@ public class GlobalExceptionHandler {
     }
 
     // Обработка 403 Forbidden
+    @Hidden
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(AccessDeniedException.class)
     public ErrorResponse handleAccessDeniedException(AccessDeniedException ex) {
@@ -41,6 +45,7 @@ public class GlobalExceptionHandler {
     }
 
     // Обработка 404 Not Found
+    @Hidden
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(ResourceNotFoundException.class)
     public ErrorResponse handleNotFound(ResourceNotFoundException ex) {
@@ -49,14 +54,16 @@ public class GlobalExceptionHandler {
     }
 
     // Обработка 409 Conflict
+    @Hidden
     @ResponseStatus(HttpStatus.CONFLICT)
-    @ExceptionHandler(ResourceConflictException.class)
-    public ErrorResponse handleConflict(ResourceConflictException ex) {
-        log.warn("Resource conflict: {}", ex.getMessage());
+    @ExceptionHandler({ResourceConflictException.class, CycleDetectedException.class})
+    public ErrorResponse handleConflict(RuntimeException ex) {
+        log.warn("Conflict: {}", ex.getMessage());
         return new ErrorResponse(ex.getMessage(), LocalDateTime.now());
     }
 
     // Обработка ошибок валидации @Valid (400 Bad Request)
+    @Hidden
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ErrorResponse handleValidation(MethodArgumentNotValidException ex) {
@@ -69,6 +76,7 @@ public class GlobalExceptionHandler {
     }
 
     // Обработка ошибок сохранения файлов (500 Internal Server Error)
+    @Hidden
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(FileStorageException.class)
     public ErrorResponse handleFileStorageException(FileStorageException ex) {
@@ -77,6 +85,7 @@ public class GlobalExceptionHandler {
     }
 
     // Обработка ошибок шифрования (500 Internal Server Error)
+    @Hidden
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(CryptoException.class)
     public ErrorResponse handleCryptoException(CryptoException ex) {
@@ -85,6 +94,7 @@ public class GlobalExceptionHandler {
     }
 
     // Fallback для непредвиденных серверных ошибок (500 Internal Server Error)
+    @Hidden
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     public ErrorResponse handleAllExceptions(Exception ex) {

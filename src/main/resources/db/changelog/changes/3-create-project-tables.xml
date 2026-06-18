@@ -75,4 +75,14 @@
     <changeSet id="1781750727190-2" author="Administrator">
         <addNotNullConstraint columnName="enrichment_status" tableName="projects"/>
     </changeSet>
+
+
+    <!--    удалил, вычисляется на лету   -->
+    <changeSet id="1781799557452-1" author="Administrator">
+        <dropColumn columnName="completion_percent" tableName="projects"/>
+
+        <dropColumn columnName="total_estimated_hours" tableName="projects"/>
+
+        <dropColumn columnName="total_logged_hours" tableName="projects"/>
+    </changeSet>
 </databaseChangeLog>
