@@ -28,9 +28,7 @@ public class TaskController {
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Создать задачу вручную")
     @PreAuthorize("@projectSecurity.isMember(#projectId)")
-    public TaskNode createTask(@PathVariable UUID projectId,
-                               @RequestBody CreateTaskRequest request,
-                               @AuthenticationPrincipal User currentUser) {
+    public TaskNode createTask(@PathVariable UUID projectId, @RequestBody CreateTaskRequest request) {
         return taskService.createTask(projectId, request);
     }
 
@@ -38,8 +36,7 @@ public class TaskController {
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Список задач проекта")
     @PreAuthorize("@projectSecurity.isViewer(#projectId)")
-    public List<TaskNode> listTasks(@PathVariable UUID projectId,
-                                    @AuthenticationPrincipal User currentUser) {
+    public List<TaskNode> listTasks(@PathVariable UUID projectId) {
         return taskService.getTasksByProject(projectId);
     }
 
@@ -47,8 +44,7 @@ public class TaskController {
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Получить задачу (с enrichment, time logs, wiki)")
     @PreAuthorize("@projectSecurity.canAccessTask(#taskId, 'VIEWER')")
-    public TaskNode getTask(@PathVariable UUID taskId,
-                            @AuthenticationPrincipal User currentUser) {
+    public TaskNode getTask(@PathVariable UUID taskId) {
         return taskService.getTask(taskId);
     }
 
@@ -57,9 +53,7 @@ public class TaskController {
     @Operation(summary = "Обновить задачу (title, description, даты, оценка, прогресс)",
             description = "Используется для обновления данных задачи, включая позицию на холсте (positionX / positionY при drag & drop в ReactFlow).")
     @PreAuthorize("@projectSecurity.canAccessTask(#taskId, 'MEMBER')")
-    public TaskNode updateTask(@PathVariable UUID taskId,
-                               @RequestBody UpdateTaskRequest request,
-                               @AuthenticationPrincipal User currentUser) {
+    public TaskNode updateTask(@PathVariable UUID taskId, @RequestBody UpdateTaskRequest request) {
         return taskService.updateTask(taskId, request);
     }
 
@@ -67,8 +61,7 @@ public class TaskController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Удалить задачу")
     @PreAuthorize("@projectSecurity.canAccessTask(#taskId, 'ADMIN')")
-    public void deleteTask(@PathVariable UUID taskId,
-                           @AuthenticationPrincipal User currentUser) {
+    public void deleteTask(@PathVariable UUID taskId) {
         taskService.deleteTask(taskId);
     }
 
@@ -87,9 +80,7 @@ public class TaskController {
     @Operation(summary = "Назначить исполнителей (заменяет весь список)",
             description = "Передать пустой массив userIds = снять всех исполнителей. Аватары обновятся на узле ReactFlow.")
     @PreAuthorize("@projectSecurity.canAccessTask(#taskId, 'ADMIN')")
-    public TaskNode assignTask(@PathVariable UUID taskId,
-                               @RequestBody AssignTaskRequest request,
-                               @AuthenticationPrincipal User currentUser) {
+    public TaskNode assignTask(@PathVariable UUID taskId, @RequestBody AssignTaskRequest request) {
         return taskService.assignTask(taskId, request);
     }
 }

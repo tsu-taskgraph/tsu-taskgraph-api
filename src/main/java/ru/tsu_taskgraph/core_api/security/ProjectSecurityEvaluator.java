@@ -42,9 +42,12 @@ public class ProjectSecurityEvaluator {
         return hasRole(task.getProject().getId(), role);
     }
 
-    public boolean canDeleteTimeLog(UUID logId) {
+    public boolean canDeleteTimeLog(UUID logId, UUID taskId) {
         User currentUser = userUtil.getCurrentUserFromContext();
         TimeLog timeLog = timeLogUtil.getTimeLogById(logId);
+        if (!timeLog.getTask().getId().equals(taskId)) {
+            return false;
+        }
         if (timeLog.getUser().getId().equals(currentUser.getId())) {
             return true;
         }

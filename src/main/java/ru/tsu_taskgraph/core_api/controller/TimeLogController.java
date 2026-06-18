@@ -39,17 +39,15 @@ public class TimeLogController {
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Журнал трудозатрат по задаче", operationId = "listTimeLogs")
     @PreAuthorize("@projectSecurity.canAccessTask(#taskId, 'VIEWER')")
-    public List<TimeLogDto> listTimeLogs(@PathVariable UUID taskId,
-                                         @AuthenticationPrincipal User currentUser) {
+    public List<TimeLogDto> listTimeLogs(@PathVariable UUID taskId) {
         return timeLogService.getTimeLogsByTask(taskId);
     }
 
-    @DeleteMapping("/time-logs/{logId}")
+    @DeleteMapping("/tasks/{taskId}/time-logs/{logId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Удалить запись о времени (автор или ADMIN/OWNER)", operationId = "deleteTimeLog")
-    @PreAuthorize("@projectSecurity.canDeleteTimeLog(#logId)")
-    public void deleteTimeLog(@PathVariable UUID logId,
-                              @AuthenticationPrincipal User currentUser) {
-        timeLogService.deleteTimeLog(logId);
+    @PreAuthorize("@projectSecurity.canDeleteTimeLog(#logId, #taskId)")
+    public void deleteTimeLog(@PathVariable UUID taskId, @PathVariable UUID logId) {
+        timeLogService.deleteTimeLog(taskId, logId);
     }
 }
