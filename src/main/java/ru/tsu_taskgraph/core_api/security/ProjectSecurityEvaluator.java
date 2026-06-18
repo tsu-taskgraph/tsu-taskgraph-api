@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.tsu_taskgraph.core_api.entity.*;
 import ru.tsu_taskgraph.core_api.repository.ProjectMemberRepository;
+import ru.tsu_taskgraph.core_api.util.TaskUtil;
+import ru.tsu_taskgraph.core_api.util.TimeLogUtil;
 import ru.tsu_taskgraph.core_api.util.UserUtil;
 
 import java.util.Optional;
@@ -14,6 +16,8 @@ import java.util.UUID;
 public class ProjectSecurityEvaluator {
 
     private final ProjectMemberRepository projectMemberRepository;
+    private final TaskUtil taskUtil;
+    private final TimeLogUtil timeLogUtil;
     private final UserUtil userUtil;
 
     public boolean isOwner(UUID projectId) {
@@ -32,7 +36,20 @@ public class ProjectSecurityEvaluator {
         return hasRole(projectId, ProjectRole.VIEWER);
     }
 
+    public boolean canAccessTask(UUID taskId, String requiredRole) {
+        ProjectRole role = ProjectRole.valueOf(requiredRole);
+        Task task = taskUtil.getTaskById(taskId);
+        return hasRole(task.getProject().getId(), role);
+    }
 
+    public boolean canDeleteTimeLog(UUID logId) {
+        User currentUser = userUtil.getCurrentUserFromContext();
+        TimeLog timeLog = timeLogUtil.getTimeLogById(logId);
+        if (timeLog.getUser().getId().equals(currentUser.getId())) {
+            return true;
+        }
+        return hasRole(timeLog.getTask().getProject().getId(), ProjectRole.ADMIN);
+    }
 
     private boolean hasRole(UUID projectId, ProjectRole requiredRole) {
         try {
