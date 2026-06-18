@@ -11,7 +11,10 @@ import ru.tsu_taskgraph.core_api.entity.TaskStatus;
 import ru.tsu_taskgraph.core_api.exception.BadRequestException;
 import ru.tsu_taskgraph.core_api.mapper.EdgeMapper;
 import ru.tsu_taskgraph.core_api.repository.EdgeRepository;
-import ru.tsu_taskgraph.core_api.util.*;
+import ru.tsu_taskgraph.core_api.util.CycleDetector;
+import ru.tsu_taskgraph.core_api.util.EdgeUtil;
+import ru.tsu_taskgraph.core_api.util.TaskStatusTransitionUtil;
+import ru.tsu_taskgraph.core_api.util.TaskUtil;
 
 import java.util.List;
 import java.util.Optional;

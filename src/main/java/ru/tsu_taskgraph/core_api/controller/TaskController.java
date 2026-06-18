@@ -53,7 +53,7 @@ public class TaskController {
     public List<TaskNode> listTasks(@PathVariable UUID projectId,
                                     @RequestParam(required = false) TaskStatus status,
                                     @RequestParam(required = false) UUID assigneeId,
-                                     @RequestParam(required = false) TaskCategory category) {
+                                    @RequestParam(required = false) TaskCategory category) {
         return taskService.getTasksByProject(projectId, status, assigneeId, category);
     }
 

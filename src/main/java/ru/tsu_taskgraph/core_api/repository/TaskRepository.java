@@ -14,6 +14,7 @@ import java.util.UUID;
 @Repository
 public interface TaskRepository extends JpaRepository<Task, UUID>, JpaSpecificationExecutor<Task> {
     List<Task> findByProject(Project project);
+
     List<Task> findByProjectId(UUID projectId);
 
     @Query("SELECT e.sourceTask FROM Edge e WHERE e.targetTask.id = :targetTaskId")

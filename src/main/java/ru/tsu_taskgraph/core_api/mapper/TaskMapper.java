@@ -1,7 +1,6 @@
 package ru.tsu_taskgraph.core_api.mapper;
 
 import org.mapstruct.*;
-import ru.tsu_taskgraph.core_api.dto.task.AssigneeDto;
 import ru.tsu_taskgraph.core_api.dto.task.TaskNode;
 import ru.tsu_taskgraph.core_api.dto.task.UpdateTaskRequest;
 import ru.tsu_taskgraph.core_api.entity.Task;
