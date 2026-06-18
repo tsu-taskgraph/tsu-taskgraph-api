@@ -27,9 +27,7 @@ public class CreateTaskRequest {
 
     private LocalDate dueDate;
 
-    @Builder.Default
-    private Double positionX = 0.0;
+    private Double positionX;
 
-    @Builder.Default
-    private Double positionY = 0.0;
+    private Double positionY;
 }

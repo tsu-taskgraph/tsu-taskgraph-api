@@ -12,7 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TimeLog {
+public class TimeLogDto {
     private UUID id;
     private UUID taskId;
     private UUID userId;
