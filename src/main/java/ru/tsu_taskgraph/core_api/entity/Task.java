@@ -46,8 +46,10 @@ public class Task {
 
     private Integer layer;
 
+    @Column(name = "position_x")
     private Double positionX;
 
+    @Column(name = "position_y")
     private Double positionY;
 
     @Builder.Default
