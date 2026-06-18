@@ -3,6 +3,7 @@ package ru.tsu_taskgraph.core_api.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.tsu_taskgraph.core_api.dto.project.*;
@@ -11,6 +12,7 @@ import ru.tsu_taskgraph.core_api.exception.ResourceConflictException;
 import ru.tsu_taskgraph.core_api.mapper.ProjectMapper;
 import ru.tsu_taskgraph.core_api.repository.ProjectMemberRepository;
 import ru.tsu_taskgraph.core_api.repository.ProjectRepository;
+import ru.tsu_taskgraph.core_api.repository.specification.ProjectSpecification;
 import ru.tsu_taskgraph.core_api.util.ProjectUtil;
 import ru.tsu_taskgraph.core_api.util.UserUtil;
 
@@ -55,8 +57,13 @@ public class ProjectService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProjectDto> getUserProjects(UUID userId, Pageable pageable) {
-        return projectRepository.findAllUserProjects(userId, pageable)
+    public Page<ProjectDto> getUserProjects(UUID userId, ProjectStatus status, String name, Pageable pageable) {
+        Specification<Project> spec = Specification.where(ProjectSpecification.userIsMemberOrOwner(userId));
+        spec = spec
+                .and(status != null ? ProjectSpecification.statusEquals(status) : null)
+                .and(name != null && !name.isBlank() ? ProjectSpecification.nameContains(name) : null);
+
+        return projectRepository.findAll(spec, pageable)
                 .map(projectMapper::toDto);
     }
 
