@@ -1,9 +1,11 @@
 package ru.tsu_taskgraph.core_api.config;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -27,7 +29,7 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
     private final HandlerExceptionResolver exceptionResolver;
 
-    @org.springframework.beans.factory.annotation.Value("${app.cors.allowed-origins}")
+    @Value("${app.cors.allowed-origins}")
     private List<String> allowedOrigins;
 
     public SecurityConfig(
@@ -52,6 +54,13 @@ public class SecurityConfig {
                             // Пробрасываем исключение в @RestControllerAdvice
                             exceptionResolver.resolveException(
                                     request, response, null, new AuthenticationException(authException.getMessage())
+                            );
+                        })
+                        // Обработка отказа в доступе (403 Forbidden)
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+
+                            exceptionResolver.resolveException(
+                                    request, response, null, new AccessDeniedException(accessDeniedException.getMessage())
                             );
                         })
                 )

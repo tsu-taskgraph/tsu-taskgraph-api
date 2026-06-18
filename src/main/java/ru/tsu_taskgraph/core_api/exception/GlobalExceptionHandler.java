@@ -2,6 +2,7 @@ package ru.tsu_taskgraph.core_api.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -28,6 +29,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ErrorResponse handleAuthException(AuthenticationException ex) {
         log.warn("Authentication failed: {}", ex.getMessage());
+        return new ErrorResponse(ex.getMessage(), LocalDateTime.now());
+    }
+
+    // Обработка 403 Forbidden
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(AccessDeniedException.class)
+    public ErrorResponse handleAccessDeniedException(AccessDeniedException ex) {
+        log.warn("Access denied: {}", ex.getMessage());
         return new ErrorResponse(ex.getMessage(), LocalDateTime.now());
     }
 
