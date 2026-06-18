@@ -55,7 +55,7 @@ public class ProjectController {
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("@projectSecurity.hasAccess(#id)")
+    @PreAuthorize("@projectSecurity.isViewer(#id)")
     @Operation(
             summary = "Получить проект",
             security = @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
@@ -66,7 +66,7 @@ public class ProjectController {
 
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("@projectSecurity.isOwnerOrAdmin(#id)")
+    @PreAuthorize("@projectSecurity.isAdmin(#id)")
     @Operation(
             summary = "Обновить метаданные (OWNER/ADMIN)",
             security = @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
