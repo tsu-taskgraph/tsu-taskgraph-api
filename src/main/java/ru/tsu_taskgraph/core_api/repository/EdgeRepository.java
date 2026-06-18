@@ -16,4 +16,5 @@ public interface EdgeRepository extends JpaRepository<Edge, UUID> {
     List<Edge> findByTargetTask(Task targetTask);
     List<Edge> findBySourceTask(Task sourceTask);
     boolean existsBySourceTaskAndTargetTask(Task source, Task target);
+    boolean existsBySourceTask(Task sourceTask);
 }

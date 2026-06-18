@@ -13,10 +13,10 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import ru.tsu_taskgraph.core_api.config.OpenApiConfig;
 import ru.tsu_taskgraph.core_api.dto.project.*;
 import ru.tsu_taskgraph.core_api.entity.ProjectStatus;
 import ru.tsu_taskgraph.core_api.entity.User;
+import ru.tsu_taskgraph.core_api.service.ProjectGraphService;
 import ru.tsu_taskgraph.core_api.service.ProjectService;
 import ru.tsu_taskgraph.core_api.util.UserUtil;
 
@@ -31,6 +31,7 @@ import java.util.UUID;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final ProjectGraphService projectGraphService;
     private final UserUtil userUtil;
 
     @PostMapping
@@ -186,7 +187,7 @@ public class ProjectController {
             @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможное сообщение:\n" +
                     "* 'Проект с ID 123 не найден'")
     })
-    public void getProjectGraph(@PathVariable UUID id) {
-        // TODO: Реализовать получение графа задач проекта
+    public ProjectGraphResponse getProjectGraph(@PathVariable UUID id) {
+        return projectGraphService.getProjectGraph(id);
     }
 }

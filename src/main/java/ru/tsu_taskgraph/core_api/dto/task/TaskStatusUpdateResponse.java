@@ -15,7 +15,6 @@ import java.util.List;
 @Builder
 public class TaskStatusUpdateResponse {
     private TaskNode updatedTask;
-    // TODO требуется логика задач с зависимостями
     private List<TaskNode> unlockedTasks;
     private ProjectGraphResponse graph;
 }

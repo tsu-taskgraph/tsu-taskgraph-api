@@ -53,10 +53,13 @@ public class Project {
     @Builder.Default
     private Boolean aiEstimate = true;
 
+    @Transient
     private Double totalEstimatedHours;
 
+    @Transient
     private Double totalLoggedHours;
 
+    @Transient
     private Double completionPercent;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)

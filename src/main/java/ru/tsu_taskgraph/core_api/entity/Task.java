@@ -44,8 +44,6 @@ public class Task {
     @Enumerated(EnumType.STRING)
     private TaskCategory category;
 
-    private Integer layer;
-
     @Column(name = "position_x")
     private Double positionX;
 

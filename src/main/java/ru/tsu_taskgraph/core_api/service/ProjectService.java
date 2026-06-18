@@ -50,8 +50,9 @@ public class ProjectService {
                 .user(owner)
                 .role(ProjectRole.OWNER)
                 .build();
+        project.getMembers().add(ownerMember);
 
-        projectMemberRepository.save(ownerMember);
+        project = projectRepository.save(project);
 
         return projectMapper.toDto(project);
     }

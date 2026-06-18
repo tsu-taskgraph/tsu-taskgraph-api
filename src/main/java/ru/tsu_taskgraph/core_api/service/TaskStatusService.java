@@ -3,13 +3,17 @@ package ru.tsu_taskgraph.core_api.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.tsu_taskgraph.core_api.dto.task.TaskNode;
 import ru.tsu_taskgraph.core_api.entity.Edge;
 import ru.tsu_taskgraph.core_api.entity.Task;
 import ru.tsu_taskgraph.core_api.entity.TaskStatus;
+import ru.tsu_taskgraph.core_api.mapper.TaskMapper;
 import ru.tsu_taskgraph.core_api.repository.EdgeRepository;
 import ru.tsu_taskgraph.core_api.util.TaskUtil;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -18,29 +22,34 @@ public class TaskStatusService {
 
     private final EdgeRepository edgeRepository;
     private final TaskUtil taskUtil;
+    private final TaskMapper taskMapper;
+    private final GraphLayerService graphLayerService;
 
-    /**
-     * Обновляет статусы всех задач, которые зависят от указанной (завершенной) задачи.
-     * @param completedTaskId ID задачи, которая была только что завершена или пропущена.
-     */
     @Transactional
-    public void updateDependentTasks(UUID completedTaskId) {
+    public List<TaskNode> updateDependentTasks(UUID completedTaskId) {
         Task completedTask = taskUtil.getTaskById(completedTaskId);
         List<Edge> dependentEdges = edgeRepository.findBySourceTask(completedTask);
+        List<TaskNode> unlockedTasks = new ArrayList<>();
+
+        if (dependentEdges.isEmpty()) {
+            return unlockedTasks;
+        }
+
+        // Рассчитываем слои один раз для всего проекта
+        UUID projectId = completedTask.getProject().getId();
+        Map<UUID, Integer> layers = graphLayerService.calculateLayers(projectId);
 
         for (Edge edge : dependentEdges) {
-            tryToUnlockTask(edge.getTargetTask());
+            if (tryToUnlockTask(edge.getTargetTask())) {
+                unlockedTasks.add(taskMapper.toNode(edge.getTargetTask(), layers));
+            }
         }
+        return unlockedTasks;
     }
 
-    /**
-     * Пытается разблокировать задачу, проверяя статусы всех её предшественников.
-     * @param task Задача, которую нужно попытаться разблокировать.
-     */
-    public void tryToUnlockTask(Task task) {
-        // Разблокировать можно только заблокированную задачу
+    public boolean tryToUnlockTask(Task task) {
         if (task.getStatus() != TaskStatus.LOCKED) {
-            return;
+            return false;
         }
 
         List<Edge> prerequisites = edgeRepository.findByTargetTask(task);
@@ -53,6 +62,8 @@ public class TaskStatusService {
 
         if (allPrerequisitesDone) {
             task.setStatus(TaskStatus.AVAILABLE);
+            return true;
         }
+        return false;
     }
 }
