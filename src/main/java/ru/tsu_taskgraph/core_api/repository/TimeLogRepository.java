@@ -11,5 +11,6 @@ import java.util.UUID;
 @Repository
 public interface TimeLogRepository extends JpaRepository<TimeLog, UUID> {
     List<TimeLog> findByTask(Task task);
+
     List<TimeLog> findByTaskId(UUID taskId);
 }
