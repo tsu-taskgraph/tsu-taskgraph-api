@@ -16,6 +16,6 @@ public class EdgeUtil {
 
     public Edge getEdgeById(UUID edgeId) {
         return edgeRepository.findById(edgeId)
-                .orElseThrow(() -> new ResourceNotFoundException("Edge not found: " + edgeId));
+                .orElseThrow(() -> new ResourceNotFoundException("Ребро с id=" + edgeId + " не найдено"));
     }
 }

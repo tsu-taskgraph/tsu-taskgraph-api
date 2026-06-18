@@ -13,6 +13,7 @@ import java.util.UUID;
 public interface EdgeRepository extends JpaRepository<Edge, UUID> {
     List<Edge> findByProject(Project project);
     List<Edge> findByProjectId(UUID projectId);
+    List<Edge> findByTargetTask(Task targetTask);
+    List<Edge> findBySourceTask(Task sourceTask);
     boolean existsBySourceTaskAndTargetTask(Task source, Task target);
-    boolean existsByTargetTask(Task target);
 }
