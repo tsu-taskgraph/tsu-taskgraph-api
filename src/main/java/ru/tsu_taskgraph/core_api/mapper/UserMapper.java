@@ -5,6 +5,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.springframework.beans.factory.annotation.Autowired;
+import ru.tsu_taskgraph.core_api.dto.task.AssigneeDto;
 import ru.tsu_taskgraph.core_api.dto.user.AiProviderSettings;
 import ru.tsu_taskgraph.core_api.dto.user.SavedAiSettings;
 import ru.tsu_taskgraph.core_api.dto.user.UpdateAiSettingsRequest;
@@ -21,6 +22,9 @@ public abstract class UserMapper {
     private EncryptionService encryptionService;
 
     public abstract UserProfile toUserProfile(User user);
+
+    @Mapping(source = "id", target = "userId")
+    public abstract AssigneeDto toAssigneeDto(User user);
 
     @Mapping(target = "hasApiKey", expression = "java(aiSettings.getEncryptedApiKey() != null && !aiSettings.getEncryptedApiKey().isEmpty())")
     public abstract SavedAiSettings toSavedAiSettings(AiSettings aiSettings);

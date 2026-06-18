@@ -67,4 +67,12 @@
                                  constraintName="FK_PROJECT_MEMBERS_ON_USER" referencedColumnNames="id"
                                  referencedTableName="users"/>
     </changeSet>
+    <changeSet id="1781750727190-1" author="Administrator">
+        <addColumn tableName="projects">
+            <column name="enrichment_status" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1781750727190-2" author="Administrator">
+        <addNotNullConstraint columnName="enrichment_status" tableName="projects"/>
+    </changeSet>
 </databaseChangeLog>
