@@ -1,15 +1,13 @@
 package ru.tsu_taskgraph.core_api.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import ru.tsu_taskgraph.core_api.dto.task.AssigneeDto;
+import org.mapstruct.*;
 import ru.tsu_taskgraph.core_api.dto.task.TaskNode;
+import ru.tsu_taskgraph.core_api.dto.task.UpdateTaskRequest;
 import ru.tsu_taskgraph.core_api.entity.Task;
-import ru.tsu_taskgraph.core_api.entity.User;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {UserMapper.class})
 public interface TaskMapper {
 
     @Mapping(source = "project.id", target = "projectId")
@@ -18,6 +16,6 @@ public interface TaskMapper {
 
     List<TaskNode> toNodeList(List<Task> tasks);
 
-    @Mapping(source = "id", target = "userId")
-    AssigneeDto userToAssigneeDto(User user);
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateFromRequest(UpdateTaskRequest request, @MappingTarget Task task);
 }
