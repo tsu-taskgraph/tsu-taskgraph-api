@@ -1,6 +1,8 @@
 package ru.tsu_taskgraph.core_api.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -34,6 +36,11 @@ public class ProjectController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Создать проект + AI-декомпозиция (Фаза 1)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Проект успешно создан"),
+            @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможное сообщение:\n" +
+                    "* 'Пользователь с id=123 не найден'")
+    })
     public ProjectDto createProject(@Valid @RequestBody CreateProjectRequest request) {
         User currentUser = userUtil.getCurrentUserFromContext();
         return projectService.createProject(request, currentUser.getId());
@@ -55,6 +62,12 @@ public class ProjectController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("@projectSecurity.isViewer(#id)")
     @Operation(summary = "Получить проект")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Проект найден"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен (сообщение: 'Доступ запрещен')"),
+            @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможное сообщение:\n" +
+                    "* 'Проект с ID 123 не найден'")
+    })
     public ProjectDto getProjectById(@PathVariable UUID id) {
         return projectService.getProjectById(id);
     }
@@ -63,6 +76,12 @@ public class ProjectController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("@projectSecurity.isAdmin(#id)")
     @Operation(summary = "Обновить метаданные (OWNER/ADMIN)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Проект успешно обновлен"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен (сообщение: 'Доступ запрещен')"),
+            @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможное сообщение:\n" +
+                    "* 'Проект с ID 123 не найден'")
+    })
     public ProjectDto updateProject(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateProjectRequest request
@@ -74,6 +93,12 @@ public class ProjectController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("@projectSecurity.isOwner(#id)")
     @Operation(summary = "Удалить проект (только OWNER)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Проект успешно удален"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен (сообщение: 'Доступ запрещен')"),
+            @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможное сообщение:\n" +
+                    "* 'Проект с ID 123 не найден'")
+    })
     public void deleteProject(@PathVariable UUID id) {
         projectService.deleteProject(id);
     }
@@ -82,6 +107,12 @@ public class ProjectController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("@projectSecurity.isViewer(#id)")
     @Operation(summary = "Список участников проекта")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Список участников получен"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен (сообщение: 'Доступ запрещен')"),
+            @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможное сообщение:\n" +
+                    "* 'Проект с ID 123 не найден'")
+    })
     public List<ProjectMemberDto> listProjectMembers(@PathVariable UUID id) {
         return projectService.listProjectMembers(id);
     }
@@ -90,6 +121,15 @@ public class ProjectController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("@projectSecurity.isAdmin(#id)")
     @Operation(summary = "Пригласить участника (OWNER/ADMIN)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Участник успешно приглашен"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен (сообщение: 'Доступ запрещен')"),
+            @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможные сообщения:\n" +
+                    "* 'Проект с ID 123 не найден'\n" +
+                    "* 'Пользователь с email=123 не найден'"),
+            @ApiResponse(responseCode = "409", description = "Конфликт. Возможное сообщение:\n" +
+                    "* 'Пользователь уже является участником проекта'")
+    })
     public ProjectMemberDto inviteMember(
             @PathVariable UUID id,
             @Valid @RequestBody InviteMemberRequest request
@@ -101,6 +141,14 @@ public class ProjectController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("@projectSecurity.isOwner(#id)")
     @Operation(summary = "Изменить роль участника (только OWNER)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Роль участника успешно изменена"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен (сообщение: 'Доступ запрещен')"),
+            @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможные сообщения:\n" +
+                    "* 'Проект с ID 123 не найден'\n" +
+                    "* 'Пользователь с id=123 не найден'\n" +
+                    "* 'Участник с ID 123 не найден в проекте с ID 123'")
+    })
     public ProjectMemberDto updateMemberRole(
             @PathVariable UUID id,
             @PathVariable UUID userId,
@@ -113,6 +161,14 @@ public class ProjectController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("@projectSecurity.isOwner(#id) or principal.id == #userId")
     @Operation(summary = "Удалить участника (OWNER или сам пользователь)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Участник успешно удален"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен (сообщение: 'Доступ запрещен')"),
+            @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможные сообщения:\n" +
+                    "* 'Проект с ID 123 не найден'\n" +
+                    "* 'Пользователь с id=123 не найден'\n" +
+                    "* 'Участник с ID 123 не найден в проекте с ID 123'")
+    })
     public void removeMember(
             @PathVariable UUID id,
             @PathVariable UUID userId
@@ -124,6 +180,12 @@ public class ProjectController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("@projectSecurity.isViewer(#id)")
     @Operation(summary = "Полный граф (узлы + рёбра + назначения)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Граф проекта получен"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен (сообщение: 'Доступ запрещен')"),
+            @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможное сообщение:\n" +
+                    "* 'Проект с ID 123 не найден'")
+    })
     public void getProjectGraph(@PathVariable UUID id) {
         // TODO: Реализовать получение графа задач проекта
     }
