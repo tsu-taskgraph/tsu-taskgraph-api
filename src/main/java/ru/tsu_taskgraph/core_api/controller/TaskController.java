@@ -9,6 +9,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import ru.tsu_taskgraph.core_api.dto.task.*;
+import ru.tsu_taskgraph.core_api.entity.TaskCategory;
+import ru.tsu_taskgraph.core_api.entity.TaskStatus;
 import ru.tsu_taskgraph.core_api.entity.User;
 import ru.tsu_taskgraph.core_api.service.TaskService;
 
@@ -36,8 +38,11 @@ public class TaskController {
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Список задач проекта")
     @PreAuthorize("@projectSecurity.isViewer(#projectId)")
-    public List<TaskNode> listTasks(@PathVariable UUID projectId) {
-        return taskService.getTasksByProject(projectId);
+    public List<TaskNode> listTasks(@PathVariable UUID projectId,
+                                    @RequestParam(required = false) TaskStatus status,
+                                    @RequestParam(required = false) UUID assigneeId,
+                                    @RequestParam(required = false) TaskCategory category) {
+        return taskService.getTasksByProject(projectId, status, assigneeId, category);
     }
 
     @GetMapping("/tasks/{taskId}")

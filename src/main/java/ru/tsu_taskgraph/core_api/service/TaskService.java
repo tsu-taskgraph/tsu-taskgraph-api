@@ -1,16 +1,16 @@
 package ru.tsu_taskgraph.core_api.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.tsu_taskgraph.core_api.dto.project.ProjectGraphResponse;
 import ru.tsu_taskgraph.core_api.dto.task.*;
-import ru.tsu_taskgraph.core_api.entity.Project;
-import ru.tsu_taskgraph.core_api.entity.Task;
-import ru.tsu_taskgraph.core_api.entity.User;
+import ru.tsu_taskgraph.core_api.entity.*;
 import ru.tsu_taskgraph.core_api.mapper.TaskMapper;
 import ru.tsu_taskgraph.core_api.repository.TaskRepository;
 import ru.tsu_taskgraph.core_api.repository.UserRepository;
+import ru.tsu_taskgraph.core_api.repository.specification.TaskSpecification;
 import ru.tsu_taskgraph.core_api.util.ProjectUtil;
 import ru.tsu_taskgraph.core_api.util.TaskUtil;
 
@@ -55,9 +55,14 @@ public class TaskService {
     }
 
     @Transactional(readOnly = true)
-    public List<TaskNode> getTasksByProject(UUID projectId) {
-        Project project = projectUtil.getProjectById(projectId);
-        List<Task> tasks = taskRepository.findByProject(project);
+    public List<TaskNode> getTasksByProject(UUID projectId, TaskStatus status, UUID assigneeId, TaskCategory category) {
+        Specification<Task> spec = Specification.where(TaskSpecification.projectIdEquals(projectId));
+
+        spec = spec.and(status != null ? TaskSpecification.statusEquals(status) : null)
+                .and(assigneeId != null ? TaskSpecification.assigneeIdEquals(assigneeId) : null)
+                .and(category != null ? TaskSpecification.categoryEquals(category) : null);
+
+        List<Task> tasks = taskRepository.findAll(spec);
         return taskMapper.toNodeList(tasks);
     }
 
