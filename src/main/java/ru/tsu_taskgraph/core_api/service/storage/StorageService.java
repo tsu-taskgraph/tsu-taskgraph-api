@@ -5,7 +5,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface StorageService {
 
-    record StoredFile(Resource resource, String contentType) {}
+    record StoredFile(Resource resource, String contentType) {
+    }
 
     String store(MultipartFile file, StorageCategory category, String... pathSegments);
 

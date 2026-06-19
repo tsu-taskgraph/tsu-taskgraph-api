@@ -10,5 +10,6 @@ import java.util.UUID;
 @Repository
 public interface WikiPageRepository extends JpaRepository<WikiPage, UUID> {
     List<WikiPage> findByProjectId(UUID projectId);
+
     List<WikiPage> findByProjectIdAndTaskId(UUID projectId, UUID taskId);
 }

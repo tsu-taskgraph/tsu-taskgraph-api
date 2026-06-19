@@ -10,5 +10,6 @@ import java.util.UUID;
 @Repository
 public interface WikiMediaRepository extends JpaRepository<WikiMedia, UUID> {
     List<WikiMedia> findByProjectId(UUID projectId);
+
     List<WikiMedia> findByProjectIdAndMimeTypeStartingWith(UUID projectId, String mimeType);
 }

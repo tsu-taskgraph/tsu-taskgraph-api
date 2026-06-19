@@ -2,7 +2,10 @@ package ru.tsu_taskgraph.core_api.mapper;
 
 import org.mapstruct.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import ru.tsu_taskgraph.core_api.dto.project.*;
+import ru.tsu_taskgraph.core_api.dto.project.ProjectDto;
+import ru.tsu_taskgraph.core_api.dto.project.ProjectMemberDto;
+import ru.tsu_taskgraph.core_api.dto.project.ProjectMetricsDto;
+import ru.tsu_taskgraph.core_api.dto.project.UpdateProjectRequest;
 import ru.tsu_taskgraph.core_api.entity.Project;
 import ru.tsu_taskgraph.core_api.entity.ProjectMember;
 import ru.tsu_taskgraph.core_api.service.ProjectCalculationService;

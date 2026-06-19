@@ -1,10 +1,6 @@
 package ru.tsu_taskgraph.core_api.mapper;
 
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
 import ru.tsu_taskgraph.core_api.dto.wiki.UpdateWikiPageRequest;
 import ru.tsu_taskgraph.core_api.dto.wiki.WikiPageDto;
 import ru.tsu_taskgraph.core_api.dto.wiki.WikiPageSummaryDto;
