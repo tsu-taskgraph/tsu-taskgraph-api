@@ -9,3 +9,9 @@ databaseChangeLog:
       file: db/changelog/changes/4-create-tasks-logtime-tables.xml
   - include:
       file: db/changelog/changes/5-create-edge-table.xml
+  - include:
+      file: db/changelog/changes/6-create-wiki-table.xml
+  - include:
+      file: db/changelog/changes/7-create-wiki-media-table.xml
+  - include:
+      file: db/changelog/changes/8-add-version-fields.xml

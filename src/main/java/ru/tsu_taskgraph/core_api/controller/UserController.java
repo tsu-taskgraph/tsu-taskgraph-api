@@ -106,7 +106,7 @@ public class UserController {
         return userService.deleteAvatar();
     }
 
-    @GetMapping(value = "/avatar/{filename}")
+    @GetMapping(value = "/avatar/{filename:.+}")
     @Operation(summary = "Получить файл аватарки")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Файл найден"),

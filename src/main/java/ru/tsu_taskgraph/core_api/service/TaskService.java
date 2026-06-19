@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.tsu_taskgraph.core_api.dto.task.*;
 import ru.tsu_taskgraph.core_api.entity.*;
 import ru.tsu_taskgraph.core_api.exception.BadRequestException;
+import ru.tsu_taskgraph.core_api.exception.ResourceConflictException;
 import ru.tsu_taskgraph.core_api.mapper.TaskMapper;
 import ru.tsu_taskgraph.core_api.repository.EdgeRepository;
 import ru.tsu_taskgraph.core_api.repository.TaskRepository;
@@ -45,6 +46,7 @@ public class TaskService {
                 .dueDate(request.getDueDate())
                 .positionX(request.getPositionX())
                 .positionY(request.getPositionY())
+                .version(1)
                 .build();
         task = taskRepository.save(task);
         Map<UUID, Integer> layers = graphLayerService.calculateLayers(projectId);
@@ -74,6 +76,11 @@ public class TaskService {
     @Transactional
     public TaskNode updateTask(UUID taskId, UpdateTaskRequest request) {
         Task task = taskUtil.getTaskById(taskId);
+
+        if (!Objects.equals(request.getVersion(), task.getVersion())) {
+            throw new ResourceConflictException("Задача была изменена другим пользователем. Пожалуйста, обновите страницу.");
+        }
+
         taskMapper.updateFromRequest(request, task);
         Map<UUID, Integer> layers = graphLayerService.calculateLayers(task.getProject().getId());
         return taskMapper.toNode(task, layers);

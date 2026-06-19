@@ -19,6 +19,7 @@ import java.util.UUID;
 @Builder
 public class TaskNode {
     private UUID id;
+    private Integer version;
     private UUID projectId;
     private String title;
     private String description;

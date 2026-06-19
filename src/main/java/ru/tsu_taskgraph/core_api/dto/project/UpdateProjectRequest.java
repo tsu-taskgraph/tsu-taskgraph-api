@@ -1,5 +1,6 @@
 package ru.tsu_taskgraph.core_api.dto.project;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,4 +19,7 @@ public class UpdateProjectRequest {
     private List<String> techStack;
     private ProjectStatus status;
     private Boolean aiEstimate;
+
+    @NotNull
+    private Integer version;
 }

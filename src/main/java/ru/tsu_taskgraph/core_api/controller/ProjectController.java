@@ -81,7 +81,9 @@ public class ProjectController {
             @ApiResponse(responseCode = "200", description = "Проект успешно обновлен"),
             @ApiResponse(responseCode = "403", description = "Доступ запрещен (сообщение: 'Доступ запрещен')"),
             @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможное сообщение:\n" +
-                    "* 'Проект с ID 123 не найден'")
+                    "* 'Проект с ID 123 не найден'"),
+            @ApiResponse(responseCode = "409", description = "Конфликт версий. Возможное сообщение:\n" +
+                    "* 'Проект был изменен другим пользователем. Пожалуйста, обновите страницу.'")
     })
     public ProjectDto updateProject(
             @PathVariable UUID id,

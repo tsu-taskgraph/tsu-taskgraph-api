@@ -2,6 +2,7 @@ package ru.tsu_taskgraph.core_api.dto.task;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,4 +29,7 @@ public class UpdateTaskRequest {
     private LocalDate dueDate;
     private Double positionX;
     private Double positionY;
+
+    @NotNull
+    private Integer version;
 }

@@ -1,6 +1,7 @@
 package ru.tsu_taskgraph.core_api.exception;
 
 import io.swagger.v3.oas.annotations.Hidden;
+import jakarta.persistence.OptimisticLockException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -56,9 +57,12 @@ public class GlobalExceptionHandler {
     // Обработка 409 Conflict
     @Hidden
     @ResponseStatus(HttpStatus.CONFLICT)
-    @ExceptionHandler({ResourceConflictException.class, CycleDetectedException.class})
+    @ExceptionHandler({ResourceConflictException.class, CycleDetectedException.class, OptimisticLockException.class})
     public ErrorResponse handleConflict(RuntimeException ex) {
         log.warn("Conflict: {}", ex.getMessage());
+        if (ex instanceof OptimisticLockException) {
+            return new ErrorResponse("Ресурс был изменен другим пользователем. Пожалуйста, обновите данные и попробуйте снова.", LocalDateTime.now());
+        }
         return new ErrorResponse(ex.getMessage(), LocalDateTime.now());
     }
 

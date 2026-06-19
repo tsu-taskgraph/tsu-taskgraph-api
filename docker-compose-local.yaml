@@ -12,7 +12,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://task-graph-bd:5432/task-graph-bd
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
-      - APP_STORAGE_LOCAL_DIR=local_data/avatars
+      - APP_STORAGE_LOCAL_DIR=local_data
       - APP_ENCRYPTION_KEY=12345678901234567890123456789012
       - APP_CORS_ALLOWED_ORIGINS=http://localhost:*
 
