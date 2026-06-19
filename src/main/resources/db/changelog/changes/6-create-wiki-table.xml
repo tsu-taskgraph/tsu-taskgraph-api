@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+
+    <changeSet id="1781840841185-1" author="Administrator">
+        <createTable tableName="wiki_pages">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_wiki_pages"/>
+            </column>
+            <column name="project_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="task_id" type="UUID"/>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="author_id" type="UUID"/>
+            <column name="author_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATETIME"/>
+            <column name="updated_at" type="DATETIME"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1781840841185-2" author="Administrator">
+        <addUniqueConstraint columnNames="task_id" constraintName="uc_wiki_pages_task" tableName="wiki_pages"/>
+    </changeSet>
+    <changeSet id="1781840841185-3" author="Administrator">
+        <addForeignKeyConstraint baseColumnNames="project_id" baseTableName="wiki_pages"
+                                 constraintName="FK_WIKI_PAGES_ON_PROJECT" referencedColumnNames="id"
+                                 referencedTableName="projects"/>
+    </changeSet>
+    <changeSet id="1781840841185-4" author="Administrator">
+        <addForeignKeyConstraint baseColumnNames="task_id" baseTableName="wiki_pages"
+                                 constraintName="FK_WIKI_PAGES_ON_TASK" referencedColumnNames="id"
+                                 referencedTableName="tasks"/>
+    </changeSet>
+</databaseChangeLog>
