@@ -14,7 +14,8 @@ import ru.tsu_taskgraph.core_api.entity.AiSettings;
 import ru.tsu_taskgraph.core_api.entity.User;
 import ru.tsu_taskgraph.core_api.exception.ResourceNotFoundException;
 import ru.tsu_taskgraph.core_api.mapper.UserMapper;
-import ru.tsu_taskgraph.core_api.repository.UserRepository;
+import ru.tsu_taskgraph.core_api.service.storage.StorageCategory;
+import ru.tsu_taskgraph.core_api.service.storage.StorageService;
 import ru.tsu_taskgraph.core_api.util.UserUtil;
 
 import static org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder.fromMethodName;
@@ -24,10 +25,9 @@ import static org.springframework.web.servlet.mvc.method.annotation.MvcUriCompon
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final UserUtil userUtil;
-    private final FileStorageService fileStorageService;
+    private final StorageService storageService;
 
     @Transactional(readOnly = true)
     public UserProfile getCurrentUserProfile() {
@@ -48,14 +48,9 @@ public class UserService {
     @Transactional
     public UserProfile uploadAvatar(MultipartFile file) {
         User dbUser = userUtil.getCurrentUserFromDb();
+        deleteOldAvatar(dbUser);
 
-        String currentAvatarFilename = null;
-        if (dbUser.getAvatarUrl() != null && !dbUser.getAvatarUrl().isEmpty()) {
-            currentAvatarFilename = dbUser.getAvatarUrl().substring(dbUser.getAvatarUrl().lastIndexOf('/') + 1);
-        }
-
-        String newFilename = fileStorageService.storeAvatar(file, currentAvatarFilename);
-
+        String newFilename = storageService.store(file, StorageCategory.AVATARS);
         String avatarUrl = fromMethodName(UserController.class, "getAvatar", newFilename).build().toUriString();
         dbUser.setAvatarUrl(avatarUrl);
         userRepository.save(dbUser);
@@ -63,25 +58,35 @@ public class UserService {
         return userMapper.toUserProfile(dbUser);
     }
 
-
     @Transactional
     public UserProfile deleteAvatar() {
         User dbUser = userUtil.getCurrentUserFromDb();
 
+        deleteOldAvatar(dbUser);
         dbUser.setAvatarUrl(null);
         userRepository.save(dbUser);
 
         return userMapper.toUserProfile(dbUser);
     }
 
-    public FileStorageService.StoredFile getAvatar(String filename) {
-        return fileStorageService.loadAvatar(filename);
+    public StorageService.StoredFile getAvatar(String filename) {
+        return storageService.load(StorageCategory.AVATARS, filename);
+    }
+
+    private void deleteOldAvatar(User user) {
+        if (user.getAvatarUrl() != null && !user.getAvatarUrl().isEmpty()) {
+            try {
+                String oldFilename = user.getAvatarUrl().substring(user.getAvatarUrl().lastIndexOf('/') + 1);
+                storageService.delete(StorageCategory.AVATARS, oldFilename);
+            } catch (Exception e) {
+                log.error("Не удалось удалить старый аватар: {}", e.getMessage());
+            }
+        }
     }
 
     @Transactional(readOnly = true)
     public SavedAiSettings getAiSettings() {
         User dbUser = userUtil.getCurrentUserFromDb();
-
 
         if (dbUser.getAiSettings() == null) {
             throw new ResourceNotFoundException("AI-настройки не найдены");
@@ -110,7 +115,6 @@ public class UserService {
             userRepository.save(dbUser);
         }
     }
-
 
     private AiSettings getOrCreateAiSettings(User user) {
         AiSettings aiSettings = user.getAiSettings();

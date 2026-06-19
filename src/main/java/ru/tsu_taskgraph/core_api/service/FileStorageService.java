@@ -5,10 +5,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
-import ru.tsu_taskgraph.core_api.exception.BadRequestException;
 import ru.tsu_taskgraph.core_api.exception.FileStorageException;
 import ru.tsu_taskgraph.core_api.exception.ResourceNotFoundException;
+import ru.tsu_taskgraph.core_api.service.storage.StorageCategory;
+import ru.tsu_taskgraph.core_api.service.storage.StorageService;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -20,74 +22,84 @@ import java.util.UUID;
 
 @Slf4j
 @Service
-public class FileStorageService {
+public class FileStorageService implements StorageService {
 
-    private final Path storagePath;
+    private final Path rootLocation;
 
-    public FileStorageService(@Value("${app.storage.local-dir}") String avatarStorageDir) {
-        this.storagePath = Paths.get(avatarStorageDir);
+    public FileStorageService(@Value("${app.storage.local-dir}") String uploadDir) {
+        this.rootLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
         try {
-            if (!Files.exists(storagePath)) {
-                Files.createDirectories(storagePath);
-                log.info("Created avatar storage directory: {}", storagePath);
+            Files.createDirectories(this.rootLocation);
+        } catch (Exception ex) {
+            throw new FileStorageException("Не удалось создать корневую директорию для хранения файлов.", ex);
+        }
+    }
+
+    @Override
+    public String store(MultipartFile file, StorageCategory category, String... pathSegments) {
+        String filename = StringUtils.cleanPath(file.getOriginalFilename());
+        try {
+            if (file.isEmpty() || filename.contains("..")) {
+                throw new FileStorageException("Не удалось сохранить файл: некорректный путь " + filename.toString());
             }
-        } catch (IOException e) {
-            throw new FileStorageException("Не удалось создать директорию для хранения аватаров", e);
-        }
-    }
 
-    public String storeAvatar(MultipartFile file, String currentAvatarFilename) {
-        if (file.isEmpty()) {
-            throw new BadRequestException("Файл не выбран");
-        }
-        String contentType = file.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            throw new BadRequestException("Разрешены только изображения");
-        }
+            Path categoryPath = rootLocation.resolve(category.getPath());
+            Files.createDirectories(categoryPath);
 
-        try {
-            String filename = generateFilename(contentType, currentAvatarFilename);
-            Path filePath = storagePath.resolve(filename);
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-            return filename;
-        } catch (IOException e) {
-            log.error("Ошибка сохранения файла аватара", e);
-            throw new FileStorageException("Ошибка сохранения файла аватара", e);
-        }
-    }
-
-    public record StoredFile(Resource resource, String contentType) {
-    }
-
-    public StoredFile loadAvatar(String filename) {
-        try {
-            Path filePath = storagePath.resolve(filename).normalize();
-            Resource resource = new UrlResource(filePath.toUri());
-
-            if (resource.exists() && resource.isReadable()) {
-                String contentType = Files.probeContentType(filePath);
-                if (contentType == null) {
-                    contentType = "application/octet-stream";
+            Path finalPath = categoryPath;
+            if (pathSegments != null && pathSegments.length > 0) {
+                for (String segment : pathSegments) {
+                    finalPath = finalPath.resolve(segment);
                 }
+            }
+            Files.createDirectories(finalPath);
+
+            String extension = StringUtils.getFilenameExtension(filename);
+            String newFilename = UUID.randomUUID() + "." + extension;
+
+            Path targetLocation = finalPath.resolve(newFilename);
+            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+
+            return newFilename;
+
+        } catch (IOException e) {
+            throw new FileStorageException("Не удалось сохранить файл " + filename, e);
+        }
+    }
+
+    @Override
+    public StoredFile load(StorageCategory category, String... pathSegments) {
+        try {
+            Path finalPath = rootLocation.resolve(category.getPath());
+            for (String segment : pathSegments) {
+                finalPath = finalPath.resolve(segment);
+            }
+            finalPath = finalPath.normalize();
+
+            Resource resource = new UrlResource(finalPath.toUri());
+            if (resource.exists() || resource.isReadable()) {
+                String contentType = Files.probeContentType(finalPath);
                 return new StoredFile(resource, contentType);
             } else {
-                throw new ResourceNotFoundException("Аватарка не найдена: " + filename);
+                throw new ResourceNotFoundException("Файл не найден: " + String.join("/", pathSegments));
             }
         } catch (MalformedURLException e) {
-            throw new ResourceNotFoundException("Аватарка не найдена (неверный путь): " + filename, e);
+            throw new ResourceNotFoundException("Файл не найден (неверный путь): " + String.join("/", pathSegments), e);
         } catch (IOException e) {
-            throw new FileStorageException("Не удалось определить тип контента для файла: " + filename, e);
+            throw new FileStorageException("Не удалось определить тип контента для файла: " + String.join("/", pathSegments), e);
         }
     }
 
-
-    private String generateFilename(String contentType, String currentFilename) {
-        String ext = contentType.split("/")[1];
-        if (currentFilename != null && !currentFilename.isEmpty() && currentFilename.endsWith(ext)) {
-            // Оставляем текущее имя, если расширение совпадает и имя не пустое
-            return currentFilename;
+    @Override
+    public void delete(StorageCategory category, String... pathSegments) {
+        try {
+            Path finalPath = rootLocation.resolve(category.getPath());
+            for (String segment : pathSegments) {
+                finalPath = finalPath.resolve(segment);
+            }
+            Files.deleteIfExists(finalPath.normalize());
+        } catch (IOException e) {
+            throw new FileStorageException("Не удалось удалить файл: " + String.join("/", pathSegments), e);
         }
-        // Создаем новое имя файла с уникальным идентификатором и правильным расширением
-        return UUID.randomUUID() + "." + ext;
     }
 }

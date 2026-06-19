@@ -5,7 +5,10 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.tsu_taskgraph.core_api.dto.wiki.WikiMediaDto;
 import ru.tsu_taskgraph.core_api.entity.User;
 import ru.tsu_taskgraph.core_api.service.WikiMediaService;
+import ru.tsu_taskgraph.core_api.service.storage.StorageService;
 
 import java.util.List;
 import java.util.UUID;
@@ -56,5 +60,15 @@ public class WikiMediaController {
     @PreAuthorize("@projectSecurity.canAccessWikiMedia(#mediaId, 'ADMIN')")
     public void deleteWikiMedia(@PathVariable UUID mediaId) {
         wikiMediaService.deleteMedia(mediaId);
+    }
+
+    @GetMapping("/projects/{projectId}/wiki/media/{filename:.+}")
+    @Operation(summary = "Получить медиафайл")
+    @PreAuthorize("@projectSecurity.isViewer(#projectId)")
+    public ResponseEntity<Resource> getMedia(@PathVariable UUID projectId, @PathVariable String filename) {
+        StorageService.StoredFile storedFile = wikiMediaService.getMedia(projectId, filename);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(storedFile.contentType()))
+                .body(storedFile.resource());
     }
 }
