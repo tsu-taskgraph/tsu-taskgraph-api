@@ -92,6 +92,8 @@ public class TaskController {
     @PreAuthorize("@projectSecurity.canAccessTask(#taskId, 'ADMIN')")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Задача успешно удалена"),
+            @ApiResponse(responseCode = "400", description = "Некорректный запрос. Возможное сообщение:\n" +
+                    "* 'Нельзя удалить задачу, от которой зависят другие задачи.'"),
             @ApiResponse(responseCode = "403", description = "Доступ запрещен (сообщение: 'Доступ запрещен')"),
             @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможное сообщение:\n" +
                     "* 'Задача с id=123 не найдена'")
