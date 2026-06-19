@@ -19,6 +19,7 @@ public class ProjectSecurityEvaluator {
     private final TimeLogUtil timeLogUtil;
     private final UserUtil userUtil;
     private final WikiPageUtil wikiPageUtil;
+    private final WikiMediaUtil wikiMediaUtil;
 
     public boolean isOwner(UUID projectId) {
         return hasRole(projectId, ProjectRole.OWNER);
@@ -52,6 +53,12 @@ public class ProjectSecurityEvaluator {
         ProjectRole role = ProjectRole.valueOf(requiredRole);
         WikiPage page = wikiPageUtil.getWikiPageById(pageId);
         return hasRole(page.getProject().getId(), role);
+    }
+
+    public boolean canAccessWikiMedia(UUID mediaId, String requiredRole) {
+        ProjectRole role = ProjectRole.valueOf(requiredRole);
+        WikiMedia media = wikiMediaUtil.getWikiMediaById(mediaId);
+        return hasRole(media.getProject().getId(), role);
     }
 
     public boolean canDeleteTimeLog(UUID logId, UUID taskId) {
