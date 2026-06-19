@@ -2,6 +2,8 @@ package ru.tsu_taskgraph.core_api.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,10 @@ public class WikiMediaController {
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Список загруженных медиафайлов проекта")
     @PreAuthorize("@projectSecurity.isViewer(#projectId)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Список медиафайлов получен"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен (сообщение: 'Доступ запрещен')")
+    })
     public List<WikiMediaDto> listWikiMedia(
             @PathVariable UUID projectId,
             @Parameter(description = "Фильтр по типу (image/*, application/pdf и т.д.)")
@@ -46,6 +52,15 @@ public class WikiMediaController {
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Загрузить медиафайл для вставки в Wiki")
     @PreAuthorize("@projectSecurity.isMember(#projectId)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Медиафайл успешно загружен"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен (сообщение: 'Доступ запрещен')"),
+            @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможное сообщение:\n" +
+                    "* 'Проект с ID 123 не найден'"),
+            @ApiResponse(responseCode = "500", description = "Ошибка сервера. Возможные сообщения:\n" +
+                    "* 'Не удалось сохранить файл: некорректный путь 123'\n" +
+                    "* 'Не удалось сохранить файл 123'")
+    })
     public WikiMediaDto uploadWikiMedia(
             @PathVariable UUID projectId,
             @RequestParam("file") MultipartFile file,
@@ -58,6 +73,12 @@ public class WikiMediaController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Удалить медиафайл")
     @PreAuthorize("@projectSecurity.canAccessWikiMedia(#mediaId, 'ADMIN')")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Медиафайл успешно удален"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен (сообщение: 'Доступ запрещен')"),
+            @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможное сообщение:\n" +
+                    "* 'Media-файл с id=123 не найден'")
+    })
     public void deleteWikiMedia(@PathVariable UUID mediaId) {
         wikiMediaService.deleteMedia(mediaId);
     }
@@ -65,6 +86,12 @@ public class WikiMediaController {
     @GetMapping("/projects/{projectId}/wiki/media/{filename:.+}")
     @Operation(summary = "Получить медиафайл")
     @PreAuthorize("@projectSecurity.isViewer(#projectId)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Медиафайл найден"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен (сообщение: 'Доступ запрещен')"),
+            @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможное сообщение:\n" +
+                    "* 'Не удалось прочитать файл: 123'")
+    })
     public ResponseEntity<Resource> getMedia(@PathVariable UUID projectId, @PathVariable String filename) {
         StorageService.StoredFile storedFile = wikiMediaService.getMedia(projectId, filename);
         return ResponseEntity.ok()

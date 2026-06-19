@@ -80,7 +80,9 @@ public class TaskController {
             @ApiResponse(responseCode = "200", description = "Задача успешно обновлена"),
             @ApiResponse(responseCode = "403", description = "Доступ запрещен (сообщение: 'Доступ запрещен')"),
             @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможное сообщение:\n" +
-                    "* 'Задача с id=123 не найдена'")
+                    "* 'Задача с id=123 не найдена'"),
+            @ApiResponse(responseCode = "409", description = "Конфликт версий. Возможное сообщение:\n" +
+                    "* 'Задача была изменена другим пользователем. Пожалуйста, обновите страницу.'")
     })
     public TaskNode updateTask(@PathVariable UUID taskId, @RequestBody UpdateTaskRequest request) {
         return taskService.updateTask(taskId, request);
