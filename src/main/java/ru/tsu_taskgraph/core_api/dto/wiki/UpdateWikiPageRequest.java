@@ -1,6 +1,7 @@
 package ru.tsu_taskgraph.core_api.dto.wiki;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,4 +16,7 @@ public class UpdateWikiPageRequest {
 
     @NotBlank
     private String content;
+
+    @NotNull
+    private Integer version;
 }

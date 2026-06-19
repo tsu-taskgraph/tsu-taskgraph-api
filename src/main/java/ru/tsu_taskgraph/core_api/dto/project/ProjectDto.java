@@ -16,6 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ProjectDto {
     private UUID id;
+    private Integer version;
     private String name;
     private String description;
     private List<String> techStack;

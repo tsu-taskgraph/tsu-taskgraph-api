@@ -17,6 +17,7 @@ import ru.tsu_taskgraph.core_api.util.ProjectUtil;
 import ru.tsu_taskgraph.core_api.util.UserUtil;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -40,6 +41,7 @@ public class ProjectService {
                 .status(ProjectStatus.ACTIVE)
                 .owner(owner)
                 .teamSize(1)
+                .version(1)
                 .aiEstimate(request.getAiEstimate() != null ? request.getAiEstimate() : true)
                 .build();
 
@@ -77,6 +79,10 @@ public class ProjectService {
     @Transactional
     public ProjectDto updateProject(UUID projectId, UpdateProjectRequest request) {
         Project project = projectUtil.getProjectById(projectId);
+
+        if (!Objects.equals(request.getVersion(), project.getVersion())) {
+            throw new ResourceConflictException("Проект был изменен другим пользователем. Пожалуйста, обновите страницу.");
+        }
 
         projectMapper.updateProjectFromDto(request, project);
 

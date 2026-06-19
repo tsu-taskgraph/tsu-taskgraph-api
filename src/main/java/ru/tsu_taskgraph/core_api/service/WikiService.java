@@ -8,6 +8,7 @@ import ru.tsu_taskgraph.core_api.dto.wiki.UpdateWikiPageRequest;
 import ru.tsu_taskgraph.core_api.dto.wiki.WikiPageDto;
 import ru.tsu_taskgraph.core_api.dto.wiki.WikiPageSummaryDto;
 import ru.tsu_taskgraph.core_api.entity.*;
+import ru.tsu_taskgraph.core_api.exception.ResourceConflictException;
 import ru.tsu_taskgraph.core_api.mapper.WikiMapper;
 import ru.tsu_taskgraph.core_api.repository.WikiPageRepository;
 import ru.tsu_taskgraph.core_api.util.ProjectUtil;
@@ -15,6 +16,7 @@ import ru.tsu_taskgraph.core_api.util.TaskUtil;
 import ru.tsu_taskgraph.core_api.util.WikiPageUtil;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -69,11 +71,15 @@ public class WikiService {
     @Transactional
     public WikiPageDto updateWikiPage(UUID pageId, UpdateWikiPageRequest request, User currentUser) {
         WikiPage page = wikiPageUtil.getWikiPageById(pageId);
+
+        if (!Objects.equals(request.getVersion(), page.getVersion())) {
+            throw new ResourceConflictException("Страница была изменена другим пользователем. Пожалуйста, обновите страницу.");
+        }
+
         wikiMapper.updateFromRequest(request, page);
 
         page.setAuthorId(currentUser.getId());
         page.setAuthorType(AuthorType.USER);
-        page.setVersion(page.getVersion() + 1);
 
         return wikiMapper.toDto(page);
     }

@@ -26,6 +26,9 @@ public class Project {
     @Column(nullable = false)
     private String name;
 
+    @Version
+    private Integer version;
+
     @Column(columnDefinition = "TEXT")
     private String description;
 

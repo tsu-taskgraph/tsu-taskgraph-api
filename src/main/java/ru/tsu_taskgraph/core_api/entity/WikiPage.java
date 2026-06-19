@@ -21,6 +21,9 @@ public class WikiPage {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Version
+    private Integer version;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
@@ -42,10 +45,6 @@ public class WikiPage {
     @Enumerated(EnumType.STRING)
     @Column(name = "author_type", nullable = false)
     private AuthorType authorType;
-
-    @Column(nullable = false)
-    @Builder.Default
-    private Integer version = 1;
 
     @CreationTimestamp
     @Column(updatable = false)

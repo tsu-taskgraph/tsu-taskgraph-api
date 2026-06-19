@@ -14,6 +14,7 @@ import ru.tsu_taskgraph.core_api.entity.AiSettings;
 import ru.tsu_taskgraph.core_api.entity.User;
 import ru.tsu_taskgraph.core_api.exception.ResourceNotFoundException;
 import ru.tsu_taskgraph.core_api.mapper.UserMapper;
+import ru.tsu_taskgraph.core_api.repository.UserRepository;
 import ru.tsu_taskgraph.core_api.service.storage.StorageCategory;
 import ru.tsu_taskgraph.core_api.service.storage.StorageService;
 import ru.tsu_taskgraph.core_api.util.UserUtil;
@@ -25,6 +26,7 @@ import static org.springframework.web.servlet.mvc.method.annotation.MvcUriCompon
 @RequiredArgsConstructor
 public class UserService {
 
+    private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final UserUtil userUtil;
     private final StorageService storageService;
