@@ -33,8 +33,9 @@ public class TimeLogController {
     @PreAuthorize("@projectSecurity.canAccessTask(#taskId, 'MEMBER')")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Время успешно залогировано"),
-            @ApiResponse(responseCode = "400", description = "Некорректный запрос. Возможное сообщение (от валидации):\n" +
-                    "* 'hours must be greater than 0'"),
+            @ApiResponse(responseCode = "400", description = "Некорректный запрос. Возможные причины:\n" +
+                    "* Некорректный формат времени. Ожидается 'ЧЧ:ММ' или число.\n" +
+                    "* Валидация (например, 'hours must be greater than 0')"),
             @ApiResponse(responseCode = "403", description = "Доступ запрещен (сообщение: 'Доступ запрещен')"),
             @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможное сообщение:\n" +
                     "* 'Задача с id=123 не найдена'")

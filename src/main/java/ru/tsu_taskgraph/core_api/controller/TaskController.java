@@ -34,6 +34,7 @@ public class TaskController {
     @PreAuthorize("@projectSecurity.isMember(#projectId)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Задача успешно создана"),
+            @ApiResponse(responseCode = "400", description = "Некорректный формат времени. Ожидается 'ЧЧ:ММ' или число."),
             @ApiResponse(responseCode = "403", description = "Доступ запрещен (сообщение: 'Доступ запрещен')"),
             @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможное сообщение:\n" +
                     "* 'Проект с ID 123 не найден'")
@@ -78,6 +79,7 @@ public class TaskController {
     @PreAuthorize("@projectSecurity.canAccessTask(#taskId, 'MEMBER')")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Задача успешно обновлена"),
+            @ApiResponse(responseCode = "400", description = "Некорректный формат времени. Ожидается 'ЧЧ:ММ' или число."),
             @ApiResponse(responseCode = "403", description = "Доступ запрещен (сообщение: 'Доступ запрещен')"),
             @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможное сообщение:\n" +
                     "* 'Задача с id=123 не найдена'"),
@@ -112,7 +114,8 @@ public class TaskController {
             @ApiResponse(responseCode = "200", description = "Статус успешно обновлен"),
             @ApiResponse(responseCode = "400", description = "Некорректный запрос. Возможные причины:\n" +
                     "* Невалидный статус задачи\n" +
-                    "* Отрицательное или нулевое значение трудозатрат (loggedHours)"),
+                    "* Отрицательное или нулевое значение трудозатрат (loggedHours)\n" +
+                    "* Некорректный формат времени. Ожидается 'ЧЧ:ММ' или число."),
             @ApiResponse(responseCode = "403", description = "Доступ запрещен (сообщение: 'Доступ запрещен')"),
             @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможное сообщение:\n" +
                     "* 'Задача с id=123 не найдена'")

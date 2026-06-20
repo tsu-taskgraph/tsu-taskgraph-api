@@ -1,5 +1,6 @@
 package ru.tsu_taskgraph.core_api.exception;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.persistence.OptimisticLockException;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadRequestException.class)
     public ErrorResponse handleCustomBadRequest(BadRequestException ex) {
         log.warn("Bad request: {}", ex.getMessage());
+        return new ErrorResponse(ex.getMessage(), LocalDateTime.now());
+    }
+
+    // Обработка неверного формата данных (400 Bad Request)
+    @Hidden
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(InvalidFormatException.class)
+    public ErrorResponse handleInvalidFormatException(InvalidFormatException ex) {
+        log.warn("Invalid format: {}", ex.getMessage());
         return new ErrorResponse(ex.getMessage(), LocalDateTime.now());
     }
 
