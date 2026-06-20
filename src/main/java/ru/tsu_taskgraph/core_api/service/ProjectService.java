@@ -66,9 +66,13 @@ public class ProjectService {
     @Transactional(readOnly = true)
     public Page<ProjectDto> getUserProjects(UUID userId, ProjectStatus status, String name, Pageable pageable) {
         Specification<Project> spec = Specification.where(ProjectSpecification.userIsMemberOrOwner(userId));
-        spec = spec
-                .and(status != null ? ProjectSpecification.statusEquals(status) : null)
-                .and(name != null && !name.isBlank() ? ProjectSpecification.nameContains(name) : null);
+
+        if (status != null) {
+            spec = spec.and(ProjectSpecification.statusEquals(status));
+        }
+        if (name != null && !name.isBlank()) {
+            spec = spec.and(ProjectSpecification.nameContains(name));
+        }
 
         return projectRepository.findAll(spec, pageable)
                 .map(projectMapper::toDto);

@@ -26,12 +26,23 @@ public class ActionLogService {
 
     @Transactional(readOnly = true)
     public Page<ActionLogEntryDto> getActionLog(UUID projectId, AuthorType actorType, ActionLogEventType eventType, UUID taskId, LocalDateTime from, LocalDateTime to, Pageable pageable) {
-        Specification<ActionLogEntry> spec = Specification.where(ActionLogSpecification.projectIdEquals(projectId))
-                .and(actorType != null ? ActionLogSpecification.actorTypeEquals(actorType) : null)
-                .and(eventType != null ? ActionLogSpecification.eventTypeEquals(eventType) : null)
-                .and(taskId != null ? ActionLogSpecification.taskIdEquals(taskId) : null)
-                .and(from != null ? ActionLogSpecification.createdAtAfter(from) : null)
-                .and(to != null ? ActionLogSpecification.createdAtBefore(to) : null);
+        Specification<ActionLogEntry> spec = Specification.where(ActionLogSpecification.projectIdEquals(projectId));
+
+        if (actorType != null) {
+            spec = spec.and(ActionLogSpecification.actorTypeEquals(actorType));
+        }
+        if (eventType != null) {
+            spec = spec.and(ActionLogSpecification.eventTypeEquals(eventType));
+        }
+        if (taskId != null) {
+            spec = spec.and(ActionLogSpecification.taskIdEquals(taskId));
+        }
+        if (from != null) {
+            spec = spec.and(ActionLogSpecification.createdAtAfter(from));
+        }
+        if (to != null) {
+            spec = spec.and(ActionLogSpecification.createdAtBefore(to));
+        }
 
         return actionLogRepository.findAll(spec, pageable).map(actionLogMapper::toDto);
     }
