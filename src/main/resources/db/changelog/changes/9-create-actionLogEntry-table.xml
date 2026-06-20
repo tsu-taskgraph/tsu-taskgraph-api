@@ -6,7 +6,7 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
 
-    <changeSet id="1781866449478-1" author="Administrator">
+    <changeSet id="1781932311870-1" author="Administrator">
         <createTable tableName="action_log">
             <column name="id" type="UUID">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_action_log"/>
@@ -14,11 +14,7 @@
             <column name="project_id" type="UUID">
                 <constraints nullable="false"/>
             </column>
-            <column name="actor_id" type="UUID"/>
             <column name="actor_type" type="VARCHAR(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="actor_display_name" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
             <column name="event_type" type="VARCHAR(255)">
@@ -31,7 +27,7 @@
             <column name="created_at" type="DATETIME"/>
         </createTable>
     </changeSet>
-    <changeSet id="1781866449478-2" author="Administrator">
+    <changeSet id="1781932311870-2" author="Administrator">
         <addForeignKeyConstraint baseColumnNames="project_id" baseTableName="action_log"
                                  constraintName="FK_ACTION_LOG_ON_PROJECT" referencedColumnNames="id"
                                  referencedTableName="projects"/>

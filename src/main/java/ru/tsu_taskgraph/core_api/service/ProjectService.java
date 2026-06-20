@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.tsu_taskgraph.core_api.domain.event.AuditEventPublisher;
 import ru.tsu_taskgraph.core_api.dto.project.*;
 import ru.tsu_taskgraph.core_api.entity.*;
 import ru.tsu_taskgraph.core_api.exception.ResourceConflictException;
@@ -29,6 +30,7 @@ public class ProjectService {
     private final ProjectMapper projectMapper;
     private final UserUtil userUtil;
     private final ProjectUtil projectUtil;
+    private final AuditEventPublisher auditEventPublisher;
 
     @Transactional
     public ProjectDto createProject(CreateProjectRequest request, UUID ownerId) {
@@ -56,6 +58,8 @@ public class ProjectService {
 
         project = projectRepository.save(project);
 
+        auditEventPublisher.publishProjectCreatedEvent(this, project, owner);
+
         return projectMapper.toDto(project);
     }
 
@@ -79,6 +83,7 @@ public class ProjectService {
     @Transactional
     public ProjectDto updateProject(UUID projectId, UpdateProjectRequest request) {
         Project project = projectUtil.getProjectById(projectId);
+        User currentUser = userUtil.getCurrentUserFromContext();
 
         if (!Objects.equals(request.getVersion(), project.getVersion())) {
             throw new ResourceConflictException("Проект был изменен другим пользователем. Пожалуйста, обновите страницу.");
@@ -87,6 +92,9 @@ public class ProjectService {
         projectMapper.updateProjectFromDto(request, project);
 
         project = projectRepository.save(project);
+
+        auditEventPublisher.publishProjectUpdatedEvent(this, project, currentUser);
+
         return projectMapper.toDto(project);
     }
 
@@ -106,15 +114,16 @@ public class ProjectService {
     @Transactional
     public ProjectMemberDto inviteMember(UUID projectId, InviteMemberRequest request) {
         Project project = projectUtil.getProjectById(projectId);
-        User user = userUtil.getUserByEmail(request.getEmail());
+        User userToInvite = userUtil.getUserByEmail(request.getEmail());
+        User currentUser = userUtil.getCurrentUserFromContext();
 
-        if (projectMemberRepository.existsByProjectAndUser(project, user)) {
+        if (projectMemberRepository.existsByProjectAndUser(project, userToInvite)) {
             throw new ResourceConflictException("Пользователь уже является участником проекта");
         }
 
         ProjectMember member = ProjectMember.builder()
                 .project(project)
-                .user(user)
+                .user(userToInvite)
                 .role(request.getRole())
                 .build();
 
@@ -124,6 +133,8 @@ public class ProjectService {
         project.setTeamSize(project.getTeamSize() + 1);
         projectRepository.save(project);
 
+        auditEventPublisher.publishMemberInvitedEvent(this, member, currentUser);
+
         return projectMapper.toMemberDto(member);
     }
 
@@ -131,11 +142,15 @@ public class ProjectService {
     public ProjectMemberDto updateMemberRole(UUID projectId, UUID userId, UpdateMemberRoleRequest request) {
         Project project = projectUtil.getProjectById(projectId);
         User user = userUtil.getUserById(userId);
+        User currentUser = userUtil.getCurrentUserFromContext();
 
         ProjectMember member = projectUtil.getProjectMember(project, user);
+        ProjectRole oldRole = member.getRole();
 
         member.setRole(request.getRole());
         member = projectMemberRepository.save(member);
+
+        auditEventPublisher.publishMemberRoleChangedEvent(this, member, oldRole, currentUser);
 
         return projectMapper.toMemberDto(member);
     }
@@ -144,6 +159,7 @@ public class ProjectService {
     public void removeMember(UUID projectId, UUID userId) {
         Project project = projectUtil.getProjectById(projectId);
         User user = userUtil.getUserById(userId);
+        User currentUser = userUtil.getCurrentUserFromContext();
 
         ProjectMember member = projectUtil.getProjectMember(project, user);
 
@@ -152,5 +168,7 @@ public class ProjectService {
         // Обновляем размер команды
         project.setTeamSize(Math.max(1, project.getTeamSize() - 1));
         projectRepository.save(project);
+
+        auditEventPublisher.publishMemberRemovedEvent(this, member, currentUser);
     }
 }

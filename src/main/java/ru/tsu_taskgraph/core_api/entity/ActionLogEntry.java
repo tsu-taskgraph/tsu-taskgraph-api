@@ -27,15 +27,9 @@ public class ActionLogEntry {
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
-    @Column(name = "actor_id")
-    private UUID actorId;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "actor_type", nullable = false)
     private AuthorType actorType;
-
-    @Column(name = "actor_display_name", nullable = false)
-    private String actorDisplayName;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "event_type", nullable = false)

@@ -18,9 +18,7 @@ import java.util.UUID;
 public class ActionLogEntryDto {
     private UUID id;
     private UUID projectId;
-    private UUID actorId;
     private AuthorType actorType;
-    private String actorDisplayName;
     private ActionLogEventType eventType;
     private String description;
     private Map<String, Object> metadata;

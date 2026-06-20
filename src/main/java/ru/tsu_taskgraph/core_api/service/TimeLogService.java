@@ -3,6 +3,7 @@ package ru.tsu_taskgraph.core_api.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.tsu_taskgraph.core_api.domain.event.AuditEventPublisher;
 import ru.tsu_taskgraph.core_api.dto.task.CreateTimeLogRequest;
 import ru.tsu_taskgraph.core_api.dto.task.TimeLogDto;
 import ru.tsu_taskgraph.core_api.entity.Task;
@@ -25,6 +26,7 @@ public class TimeLogService {
     private final TimeLogMapper timeLogMapper;
     private final TaskUtil taskUtil;
     private final TimeLogUtil timeLogUtil;
+    private final AuditEventPublisher auditEventPublisher;
 
     @Transactional
     public TimeLogDto createTimeLog(UUID taskId, CreateTimeLogRequest request, User currentUser) {
@@ -41,6 +43,9 @@ public class TimeLogService {
         task.setLoggedHours(task.getLoggedHours() + request.getHours());
 
         timeLog = timeLogRepository.save(timeLog);
+
+        auditEventPublisher.publishTimeLoggedEvent(this, timeLog, currentUser);
+
         return timeLogMapper.toDto(timeLog);
     }
 
