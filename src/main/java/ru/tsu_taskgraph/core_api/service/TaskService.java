@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.tsu_taskgraph.core_api.domain.event.AuditEventPublisher;
 import ru.tsu_taskgraph.core_api.dto.task.*;
 import ru.tsu_taskgraph.core_api.entity.*;
 import ru.tsu_taskgraph.core_api.exception.BadRequestException;
@@ -15,6 +16,7 @@ import ru.tsu_taskgraph.core_api.repository.UserRepository;
 import ru.tsu_taskgraph.core_api.repository.specification.TaskSpecification;
 import ru.tsu_taskgraph.core_api.util.ProjectUtil;
 import ru.tsu_taskgraph.core_api.util.TaskUtil;
+import ru.tsu_taskgraph.core_api.util.UserUtil;
 
 import java.util.*;
 
@@ -31,10 +33,13 @@ public class TaskService {
     private final ProjectGraphService projectGraphService;
     private final ProjectUtil projectUtil;
     private final TaskUtil taskUtil;
+    private final UserUtil userUtil;
+    private final AuditEventPublisher auditEventPublisher;
 
     @Transactional
     public TaskNode createTask(UUID projectId, CreateTaskRequest request) {
         Project project = projectUtil.getProjectById(projectId);
+        User currentUser = userUtil.getCurrentUserFromContext();
 
         Task task = Task.builder()
                 .project(project)
@@ -49,6 +54,9 @@ public class TaskService {
                 .version(1)
                 .build();
         task = taskRepository.save(task);
+
+        auditEventPublisher.publishTaskCreatedEvent(this, task, currentUser);
+
         Map<UUID, Integer> layers = graphLayerService.calculateLayers(projectId);
         return taskMapper.toNode(task, layers);
     }
@@ -76,12 +84,16 @@ public class TaskService {
     @Transactional
     public TaskNode updateTask(UUID taskId, UpdateTaskRequest request) {
         Task task = taskUtil.getTaskById(taskId);
+        User currentUser = userUtil.getCurrentUserFromContext();
 
         if (!Objects.equals(request.getVersion(), task.getVersion())) {
             throw new ResourceConflictException("Задача была изменена другим пользователем. Пожалуйста, обновите страницу.");
         }
 
         taskMapper.updateFromRequest(request, task);
+
+        auditEventPublisher.publishTaskUpdatedEvent(this, task, currentUser);
+
         Map<UUID, Integer> layers = graphLayerService.calculateLayers(task.getProject().getId());
         return taskMapper.toNode(task, layers);
     }
@@ -90,7 +102,11 @@ public class TaskService {
     public TaskStatusUpdateResponse updateTaskStatus(UUID taskId, UpdateTaskStatusRequest request, User currentUser) {
         Task task = taskUtil.getTaskById(taskId);
         TaskStatus oldStatus = task.getStatus();
-        task.setStatus(request.getStatus());
+        
+        if (oldStatus != request.getStatus()) {
+            task.setStatus(request.getStatus());
+            auditEventPublisher.publishTaskStatusChangedEvent(this, task, oldStatus, currentUser);
+        }
 
         if (request.getLoggedHours() != null && request.getLoggedHours() > 0) {
             timeLogService.createTimeLog(task.getId(), new CreateTimeLogRequest(request.getLoggedHours(), request.getComment()), currentUser);
@@ -112,8 +128,14 @@ public class TaskService {
     @Transactional
     public TaskNode assignTask(UUID taskId, AssignTaskRequest request) {
         Task task = taskUtil.getTaskById(taskId);
-        Set<User> assignees = new HashSet<>(userRepository.findAllById(request.getUserIds()));
-        task.setAssignees(assignees);
+        User currentUser = userUtil.getCurrentUserFromContext();
+        Set<User> oldAssignees = new HashSet<>(task.getAssignees());
+
+        Set<User> newAssignees = new HashSet<>(userRepository.findAllById(request.getUserIds()));
+        task.setAssignees(newAssignees);
+
+        auditEventPublisher.publishTaskAssignedEvent(this, task, oldAssignees, currentUser);
+
         Map<UUID, Integer> layers = graphLayerService.calculateLayers(task.getProject().getId());
         return taskMapper.toNode(task, layers);
     }
@@ -121,6 +143,7 @@ public class TaskService {
     @Transactional
     public void deleteTask(UUID taskId) {
         Task taskToDelete = taskUtil.getTaskById(taskId);
+        User currentUser = userUtil.getCurrentUserFromContext();
 
         if (edgeRepository.existsBySourceTask(taskToDelete)) {
             throw new BadRequestException("Нельзя удалить задачу, от которой зависят другие задачи.");
@@ -130,6 +153,8 @@ public class TaskService {
         List<UUID> parentIds = parentEdges.stream().map(edge -> edge.getSourceTask().getId()).toList();
 
         taskRepository.delete(taskToDelete);
+
+        auditEventPublisher.publishTaskDeletedEvent(this, taskToDelete, currentUser);
 
         parentIds.forEach(taskStatusService::updateDependentTasks);
     }

@@ -3,18 +3,17 @@ package ru.tsu_taskgraph.core_api.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.tsu_taskgraph.core_api.domain.event.AuditEventPublisher;
 import ru.tsu_taskgraph.core_api.dto.project.CreateEdgeRequest;
 import ru.tsu_taskgraph.core_api.dto.project.EdgeResponse;
 import ru.tsu_taskgraph.core_api.entity.Edge;
 import ru.tsu_taskgraph.core_api.entity.Task;
 import ru.tsu_taskgraph.core_api.entity.TaskStatus;
+import ru.tsu_taskgraph.core_api.entity.User;
 import ru.tsu_taskgraph.core_api.exception.BadRequestException;
 import ru.tsu_taskgraph.core_api.mapper.EdgeMapper;
 import ru.tsu_taskgraph.core_api.repository.EdgeRepository;
-import ru.tsu_taskgraph.core_api.util.CycleDetector;
-import ru.tsu_taskgraph.core_api.util.EdgeUtil;
-import ru.tsu_taskgraph.core_api.util.TaskStatusTransitionUtil;
-import ru.tsu_taskgraph.core_api.util.TaskUtil;
+import ru.tsu_taskgraph.core_api.util.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,11 +30,14 @@ public class EdgeService {
     private final CycleDetector cycleDetector;
     private final TaskStatusService taskStatusService;
     private final TaskStatusTransitionUtil taskStatusTransitionUtil;
+    private final AuditEventPublisher auditEventPublisher;
+    private final UserUtil userUtil;
 
     @Transactional
     public EdgeResponse createEdge(UUID projectId, CreateEdgeRequest request) {
         Task sourceTask = taskUtil.getTaskById(request.getSourceTaskId());
         Task targetTask = taskUtil.getTaskById(request.getTargetTaskId());
+        User currentUser = userUtil.getCurrentUserFromContext();
 
         validateEdgeCreation(projectId, sourceTask, targetTask);
 
@@ -47,6 +49,8 @@ public class EdgeService {
         edge = edgeRepository.save(edge);
 
         applyStatusChangeMatrix(sourceTask, targetTask);
+
+        auditEventPublisher.publishEdgeCreatedEvent(this, edge, currentUser);
 
         return edgeMapper.toDto(edge);
     }
@@ -68,8 +72,13 @@ public class EdgeService {
     @Transactional
     public void deleteEdge(UUID edgeId) {
         Edge edge = edgeUtil.getEdgeById(edgeId);
+        User currentUser = userUtil.getCurrentUserFromContext();
         Task targetTask = edge.getTargetTask();
+        
         edgeRepository.delete(edge);
+        
+        auditEventPublisher.publishEdgeDeletedEvent(this, edge, currentUser);
+
         taskStatusService.tryToUnlockTask(targetTask);
     }
 

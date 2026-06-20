@@ -1,0 +1,27 @@
+package ru.tsu_taskgraph.core_api.entity;
+
+public enum ActionLogEventType {
+
+    // --- USER ACTIONS ---
+    PROJECT_CREATED,
+    PROJECT_UPDATED,
+    MEMBER_INVITED,
+    MEMBER_ROLE_CHANGED,
+    MEMBER_REMOVED,
+    TASK_CREATED,
+    TASK_UPDATED,
+    TASK_STATUS_CHANGED,
+    TASK_ASSIGNED,
+    TASK_DELETED,
+    TIME_LOGGED,
+    EDGE_CREATED,
+    EDGE_DELETED,
+    WIKI_PAGE_CREATED,
+    WIKI_PAGE_UPDATED,
+
+    // --- AI ACTIONS ---
+    AI_SKELETON_GENERATED,
+    AI_ENRICHMENT_COMPLETED,
+    BLUEPRINT_GENERATED,
+
+}

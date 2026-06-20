@@ -3,6 +3,7 @@ package ru.tsu_taskgraph.core_api.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.tsu_taskgraph.core_api.domain.event.AuditEventPublisher;
 import ru.tsu_taskgraph.core_api.dto.wiki.CreateWikiPageRequest;
 import ru.tsu_taskgraph.core_api.dto.wiki.UpdateWikiPageRequest;
 import ru.tsu_taskgraph.core_api.dto.wiki.WikiPageDto;
@@ -13,6 +14,7 @@ import ru.tsu_taskgraph.core_api.mapper.WikiMapper;
 import ru.tsu_taskgraph.core_api.repository.WikiPageRepository;
 import ru.tsu_taskgraph.core_api.util.ProjectUtil;
 import ru.tsu_taskgraph.core_api.util.TaskUtil;
+import ru.tsu_taskgraph.core_api.util.UserUtil;
 import ru.tsu_taskgraph.core_api.util.WikiPageUtil;
 
 import java.util.List;
@@ -28,6 +30,8 @@ public class WikiService {
     private final ProjectUtil projectUtil;
     private final TaskUtil taskUtil;
     private final WikiPageUtil wikiPageUtil;
+    private final AuditEventPublisher auditEventPublisher;
+    private final UserUtil userUtil;
 
     @Transactional(readOnly = true)
     public List<WikiPageSummaryDto> getWikiPagesByProject(UUID projectId, UUID taskId) {
@@ -59,6 +63,9 @@ public class WikiService {
                 .build();
 
         page = wikiPageRepository.save(page);
+
+        auditEventPublisher.publishWikiPageCreatedEvent(this, page, currentUser);
+
         return wikiMapper.toDto(page);
     }
 
@@ -80,6 +87,8 @@ public class WikiService {
 
         page.setAuthorId(currentUser.getId());
         page.setAuthorType(AuthorType.USER);
+
+        auditEventPublisher.publishWikiPageUpdatedEvent(this, page, currentUser);
 
         return wikiMapper.toDto(page);
     }
