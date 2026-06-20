@@ -72,9 +72,15 @@ public class TaskService {
     public List<TaskNode> getTasksByProject(UUID projectId, TaskStatus status, UUID assigneeId, TaskCategory category) {
         Specification<Task> spec = Specification.where(TaskSpecification.projectIdEquals(projectId));
 
-        spec = spec.and(status != null ? TaskSpecification.statusEquals(status) : null)
-                .and(assigneeId != null ? TaskSpecification.assigneeIdEquals(assigneeId) : null)
-                .and(category != null ? TaskSpecification.categoryEquals(category) : null);
+        if (status != null) {
+            spec = spec.and(TaskSpecification.statusEquals(status));
+        }
+        if (assigneeId != null) {
+            spec = spec.and(TaskSpecification.assigneeIdEquals(assigneeId));
+        }
+        if (category != null) {
+            spec = spec.and(TaskSpecification.categoryEquals(category));
+        }
 
         List<Task> tasks = taskRepository.findAll(spec);
         Map<UUID, Integer> layers = graphLayerService.calculateLayers(projectId);
