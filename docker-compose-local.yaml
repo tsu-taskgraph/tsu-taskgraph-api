@@ -15,6 +15,8 @@ services:
       - APP_STORAGE_LOCAL_DIR=local_data
       - APP_ENCRYPTION_KEY=12345678901234567890123456789012
       - APP_CORS_ALLOWED_ORIGINS=http://localhost:*
+      - AI_BRIDGE_URL=http://localhost:8000
+      - AI_BRIDGE_INTERNAL_SECRET=super-secret-key
 
     depends_on:
       - task-graph-bd

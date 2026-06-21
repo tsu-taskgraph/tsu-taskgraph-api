@@ -13,6 +13,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import ru.tsu_taskgraph.core_api.dto.ai.AiRequestConfig;
 import ru.tsu_taskgraph.core_api.dto.project.*;
 import ru.tsu_taskgraph.core_api.entity.ProjectStatus;
 import ru.tsu_taskgraph.core_api.entity.User;
@@ -39,12 +40,24 @@ public class ProjectController {
     @Operation(summary = "Создать проект + AI-декомпозиция (Фаза 1)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Проект успешно создан"),
+            @ApiResponse(responseCode = "400", description = "Некорректный запрос. Возможное сообщение:\n" +
+                    "* 'AI-провайдер не сконфигурирован. Передайте настройки в X-AI-* заголовках или сохраните их в профиле.'"),
             @ApiResponse(responseCode = "404", description = "Ресурс не найден. Возможное сообщение:\n" +
                     "* 'Пользователь с id=123 не найден'")
     })
-    public ProjectDto createProject(@Valid @RequestBody CreateProjectRequest request) {
+    public ProjectDto createProject(@Valid @RequestBody CreateProjectRequest request,
+                                    @RequestHeader(value = "X-AI-Provider", required = false) String provider,
+                                    @RequestHeader(value = "X-AI-API-Key", required = false) String apiKey,
+                                    @RequestHeader(value = "X-AI-Model", required = false) String model,
+                                    @RequestHeader(value = "X-Ollama-Base-URL", required = false) String ollamaBaseUrl) {
         User currentUser = userUtil.getCurrentUserFromContext();
-        return projectService.createProject(request, currentUser.getId());
+        AiRequestConfig aiConfig = AiRequestConfig.builder()
+                .provider(provider)
+                .apiKey(apiKey)
+                .model(model)
+                .ollamaBaseUrl(ollamaBaseUrl)
+                .build();
+        return projectService.createProject(request, currentUser.getId(), aiConfig);
     }
 
     @GetMapping

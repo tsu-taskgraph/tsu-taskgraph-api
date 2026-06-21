@@ -7,6 +7,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.tsu_taskgraph.core_api.domain.event.AuditEventPublisher;
+import ru.tsu_taskgraph.core_api.dto.ai.AiRequestConfig;
 import ru.tsu_taskgraph.core_api.dto.project.*;
 import ru.tsu_taskgraph.core_api.entity.*;
 import ru.tsu_taskgraph.core_api.exception.ResourceConflictException;
@@ -31,16 +32,17 @@ public class ProjectService {
     private final UserUtil userUtil;
     private final ProjectUtil projectUtil;
     private final AuditEventPublisher auditEventPublisher;
+    private final AiService aiService;
 
     @Transactional
-    public ProjectDto createProject(CreateProjectRequest request, UUID ownerId) {
+    public ProjectDto createProject(CreateProjectRequest request, UUID ownerId, AiRequestConfig aiConfig) {
         User owner = userUtil.getUserById(ownerId);
 
         Project project = Project.builder()
                 .name(request.getName())
                 .description(request.getDescription())
                 .techStack(request.getTechStack())
-                .status(ProjectStatus.ACTIVE)
+                .status(ProjectStatus.PENDING_AI)
                 .owner(owner)
                 .teamSize(1)
                 .version(1)
@@ -59,6 +61,8 @@ public class ProjectService {
         project = projectRepository.save(project);
 
         auditEventPublisher.publishProjectCreatedEvent(this, project, owner);
+
+        aiService.triggerSkeletonGeneration(project, aiConfig);
 
         return projectMapper.toDto(project);
     }

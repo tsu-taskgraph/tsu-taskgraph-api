@@ -12,7 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProviderSettings {
+public class AiProviderSettings {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
