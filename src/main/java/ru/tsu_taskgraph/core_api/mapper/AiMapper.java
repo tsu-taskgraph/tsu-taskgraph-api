@@ -20,7 +20,7 @@ public interface AiMapper {
     @Mapping(target = "aiEstimate", source = "project.aiEstimate")
     @Mapping(target = "providerConfig", source = "providerConfig")
     GenerateSkeletonRequest toGenerateSkeletonRequest(Project project, ProviderConfig providerConfig);
-    
+
     NodeSnapshot taskToNodeSnapshot(Task task);
 
     @Mapping(target = "sourceTaskId", source = "sourceTask.id")

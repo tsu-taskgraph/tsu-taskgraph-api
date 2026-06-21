@@ -40,6 +40,6 @@ public class AiProviderSettings {
     private Integer ollamaNumCtx;
     private Integer ollamaNumGpu;
 
-    @OneToOne(mappedBy = "providerSettings")
+    @OneToOne(mappedBy = "aiProviderSettings")
     private AiSettings aiSettings;
 }

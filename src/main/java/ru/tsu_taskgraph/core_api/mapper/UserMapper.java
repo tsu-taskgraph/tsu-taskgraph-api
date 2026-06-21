@@ -32,10 +32,6 @@ public abstract class UserMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "aiSettings", ignore = true)
-    public abstract AiProviderSettings toProviderSettingsEntity(ru.tsu_taskgraph.core_api.dto.user.AiProviderSettings dto);
-
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "aiSettings", ignore = true)
     public abstract void updateProviderSettingsFromDto(ru.tsu_taskgraph.core_api.dto.user.AiProviderSettings dto, @MappingTarget AiProviderSettings entity);
 
     @Mapping(target = "id", ignore = true)
@@ -48,7 +44,7 @@ public abstract class UserMapper {
     @AfterMapping
     protected void afterUpdateAiSettingsFromRequest(UpdateAiSettingsRequest request, @MappingTarget AiSettings aiSettings) {
         updateApiKey(aiSettings, request.getApiKey());
-        updateProviderSettings(aiSettings, request.getAiProviderSettings());
+        updateAiProviderSettings(aiSettings, request.getAiProviderSettings());
     }
 
     private void updateApiKey(AiSettings aiSettings, String apiKey) {
@@ -71,7 +67,7 @@ public abstract class UserMapper {
         }
     }
 
-    private void updateProviderSettings(AiSettings aiSettings, ru.tsu_taskgraph.core_api.dto.user.AiProviderSettings aiProviderSettingsDto) {
+    private void updateAiProviderSettings(AiSettings aiSettings, ru.tsu_taskgraph.core_api.dto.user.AiProviderSettings aiProviderSettingsDto) {
         if (aiProviderSettingsDto != null) {
             AiProviderSettings aiProviderSettings = aiSettings.getAiProviderSettings();
             if (aiProviderSettings == null) {
