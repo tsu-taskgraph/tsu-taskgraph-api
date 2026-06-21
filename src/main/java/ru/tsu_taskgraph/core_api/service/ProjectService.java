@@ -62,7 +62,7 @@ public class ProjectService {
 
         auditEventPublisher.publishProjectCreatedEvent(this, project, owner);
 
-        aiService.triggerSkeletonGeneration(project, aiConfig);
+        aiService.generateSkeletonForProject(project, aiConfig);
 
         return projectMapper.toDto(project);
     }

@@ -3,6 +3,7 @@ package ru.tsu_taskgraph.core_api.domain.event;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionalEventListener;
+import ru.tsu_taskgraph.core_api.dto.ai.GenerateSkeletonResponse;
 import ru.tsu_taskgraph.core_api.entity.ActionLogEntry;
 import ru.tsu_taskgraph.core_api.entity.ActionLogEventType;
 import ru.tsu_taskgraph.core_api.entity.AuthorType;
@@ -10,6 +11,7 @@ import ru.tsu_taskgraph.core_api.entity.User;
 import ru.tsu_taskgraph.core_api.repository.ActionLogRepository;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -388,6 +390,31 @@ public class ActionLogListener {
                 .actorType(AuthorType.USER)
                 .eventType(ActionLogEventType.WIKI_PAGE_UPDATED)
                 .description(String.format("Пользователь '%s' обновил Wiki-страницу '%s'", actor.getDisplayName(), wikiPage.getTitle()))
+                .metadata(metadata)
+                .build();
+
+        actionLogRepository.save(logEntry);
+    }
+
+    @TransactionalEventListener
+    public void handleAiSkeletonGenerated(AiSkeletonGeneratedEvent event) {
+        var project = event.getProject();
+        var response = event.getResponse();
+
+        var metadata = new HashMap<String, Object>();
+        metadata.put("modelUsed", response.getModelUsed());
+        metadata.put("provider", response.getProvider());
+        metadata.put("promptTokens", response.getPromptTokens());
+        metadata.put("completionTokens", response.getCompletionTokens());
+        metadata.put("thinkingTokens", response.getThinkingTokens());
+        metadata.put("totalEstimatedHours", response.getTotalEstimatedHours());
+
+        ActionLogEntry logEntry = ActionLogEntry.builder()
+                .project(project)
+                .actorType(AuthorType.AI)
+                .eventType(ActionLogEventType.AI_SKELETON_GENERATED)
+                .description(String.format("ИИ сгенерировал скелет проекта: %d задач, %d зависимостей.",
+                        response.getNodes().size(), response.getEdges().size()))
                 .metadata(metadata)
                 .build();
 

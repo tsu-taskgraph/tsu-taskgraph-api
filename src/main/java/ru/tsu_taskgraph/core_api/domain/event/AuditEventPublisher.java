@@ -3,6 +3,7 @@ package ru.tsu_taskgraph.core_api.domain.event;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import ru.tsu_taskgraph.core_api.dto.ai.GenerateSkeletonResponse;
 import ru.tsu_taskgraph.core_api.entity.*;
 
 import java.util.Set;
@@ -71,5 +72,9 @@ public class AuditEventPublisher {
 
     public void publishWikiPageUpdatedEvent(Object source, WikiPage wikiPage, User actor) {
         publisher.publishEvent(new WikiPageUpdatedEvent(source, wikiPage, actor));
+    }
+
+    public void publishAiSkeletonGeneratedEvent(Object source, Project project, GenerateSkeletonResponse response) {
+        publisher.publishEvent(new AiSkeletonGeneratedEvent(source, project, response));
     }
 }

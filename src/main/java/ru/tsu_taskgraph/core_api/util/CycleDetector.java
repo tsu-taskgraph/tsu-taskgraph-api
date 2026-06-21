@@ -46,7 +46,7 @@ public class CycleDetector {
     private Map<UUID, List<UUID>> buildAdjacencyList(List<Edge> edges, UUID newSourceId, UUID newTargetId) {
         Map<UUID, List<UUID>> adj = new HashMap<>();
         for (Edge edge : edges) {
-            //adj.computeIfAbsent(edge.getSourceTask().getId(), k -> new ArrayList<>()).add(edge.getTargetTask().getId());
+            adj.computeIfAbsent(edge.getSourceTask().getId(), k -> new ArrayList<>()).add(edge.getTargetTask().getId());
         }
         // Добавляем новое ребро в граф для проверки
         adj.computeIfAbsent(newSourceId, k -> new ArrayList<>()).add(newTargetId);
