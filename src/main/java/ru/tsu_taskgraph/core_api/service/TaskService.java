@@ -115,7 +115,8 @@ public class TaskService {
         }
 
         if (request.getLoggedHours() != null && request.getLoggedHours() > 0) {
-            timeLogService.createTimeLog(task.getId(), new CreateTimeLogRequest(request.getLoggedHours(), request.getComment()), currentUser);
+            CreateTimeLogRequest timeLogRequest = new CreateTimeLogRequest(request.getLoggedHours(), request.getComment(), request.getLoggedAt());
+            timeLogService.createTimeLog(task.getId(), timeLogRequest, currentUser);
         }
 
         List<TaskNode> unlockedTasks = new ArrayList<>();
