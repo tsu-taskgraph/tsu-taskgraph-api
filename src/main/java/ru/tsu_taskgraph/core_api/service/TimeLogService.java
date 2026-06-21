@@ -37,7 +37,7 @@ public class TimeLogService {
                 .user(currentUser)
                 .hours(request.getHours())
                 .comment(request.getComment())
-                .loggedAt(LocalDateTime.now())
+                .loggedAt(request.getLoggedAt() != null ? request.getLoggedAt() : LocalDateTime.now())
                 .build();
 
         task.setLoggedHours(task.getLoggedHours() + request.getHours());
