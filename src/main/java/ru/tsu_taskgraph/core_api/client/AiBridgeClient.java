@@ -6,11 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import ru.tsu_taskgraph.core_api.config.FeignClientConfig;
-import ru.tsu_taskgraph.core_api.dto.ai.GenerateSkeletonRequest;
-import ru.tsu_taskgraph.core_api.dto.ai.GenerateSkeletonResponse;
-import ru.tsu_taskgraph.core_api.dto.ai.ProviderCheckRequest;
-import ru.tsu_taskgraph.core_api.dto.ai.SmartRecoveryRequest;
-import ru.tsu_taskgraph.core_api.dto.ai.SmartRecoveryResponse;
+import ru.tsu_taskgraph.core_api.dto.ai.*;
 
 import java.util.List;
 
@@ -31,4 +27,8 @@ public interface AiBridgeClient {
     @PostMapping("/api/v1/ai/providers/models")
     List<String> getModels(@RequestHeader("X-Internal-Secret") String secret,
                            @RequestBody ProviderCheckRequest request);
+
+    @PostMapping("/api/v1/ai/enrich-task")
+    EnrichTaskJobResponse enrichTask(@RequestHeader("X-Internal-Secret") String secret,
+                                     @RequestBody EnrichTaskRequest request);
 }

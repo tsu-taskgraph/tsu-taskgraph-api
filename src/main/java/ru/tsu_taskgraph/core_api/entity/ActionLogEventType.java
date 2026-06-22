@@ -22,6 +22,7 @@ public enum ActionLogEventType {
     // --- AI ACTIONS ---
     AI_SKELETON_GENERATED,
     AI_ENRICHMENT_COMPLETED,
+    AI_ENRICHMENT_FAILED,
     BLUEPRINT_GENERATED,
 
 }

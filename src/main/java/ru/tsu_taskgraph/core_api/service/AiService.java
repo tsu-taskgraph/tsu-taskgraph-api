@@ -3,6 +3,7 @@ package ru.tsu_taskgraph.core_api.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -43,6 +44,9 @@ public class AiService {
     @Value("${ai-bridge.internal-secret}")
     private String internalSecret;
 
+    @Value("${app.base-url}")
+    private String appBaseUrl;
+
     @Transactional
     public void generateSkeletonForProject(Project project, AiRequestConfig requestConfig) {
         ProviderConfig providerConfig = resolveProviderConfig(requestConfig, project.getOwner());
@@ -52,6 +56,7 @@ public class AiService {
             GenerateSkeletonResponse response = aiBridgeClient.generateSkeleton(internalSecret, request);
             processSkeletonResponse(project, response, providerConfig);
             auditEventPublisher.publishAiSkeletonGeneratedEvent(this, project, response);
+            triggerTasksEnrichment(project, providerConfig);
         } catch (AiBridgeErrorDecoder.AiProviderException | AiBridgeErrorDecoder.AiValidationException e) {
             log.error("Ошибка от AiBridge при генерации скелета для проекта {}: {}", project.getId(), e.getMessage());
             throw new BadRequestException(e.getMessage());
@@ -122,6 +127,55 @@ public class AiService {
         projectRepository.save(project);
         log.info("Скелет для проекта {} успешно сгенерирован и сохранен.", project.getId());
     }
+
+
+    @Async
+    public void triggerTasksEnrichment(Project project, ProviderConfig providerConfig) {
+        log.info("Запуск обогащения задач для проекта {}", project.getId());
+        List<Task> tasks = taskRepository.findByProjectId(project.getId());
+        tasks.forEach(task -> {
+            try {
+                EnrichTaskRequest request = buildEnrichRequest(project, task, providerConfig);
+                aiBridgeClient.enrichTask(internalSecret, request);
+            } catch (Exception e) {
+                log.error("Не удалось запустить обогащение для задачи {}", task.getId(), e);
+            }
+        });
+    }
+
+    private EnrichTaskRequest buildEnrichRequest(Project project, Task task, ProviderConfig providerConfig) {
+        List<String> predecessorTitles = edgeRepository.findByTargetTask(task).stream()
+                .map(Edge::getSourceTask)
+                .map(Task::getTitle)
+                .collect(Collectors.toList());
+
+        List<String> successorTitles = edgeRepository.findBySourceTask(task).stream()
+                .map(Edge::getTargetTask)
+                .map(Task::getTitle)
+                .collect(Collectors.toList());
+
+        TaskContext taskContext = TaskContext.builder()
+                .taskId(task.getId())
+                .taskTitle(task.getTitle())
+                .taskDescription(task.getDescription())
+                .category(task.getCategory())
+                .predecessorTitles(predecessorTitles)
+                .successorTitles(successorTitles)
+                .estimatedHours(task.getEstimatedHours())
+                .build();
+
+        String callbackUrl = appBaseUrl + "/api/v1/internal/enrichment-callback";
+
+        return EnrichTaskRequest.builder()
+                .projectName(project.getName())
+                .techStack(project.getTechStack())
+                .task(taskContext)
+                .callbackUrl(callbackUrl)
+                .generateWikiDraft(true)
+                .providerConfig(providerConfig)
+                .build();
+    }
+
 
     private SmartRecoveryRequest createRecoveryRequest(Project project, GenerateSkeletonResponse response, List<String> cycle, ProviderConfig providerConfig) {
         MutationPatch failedMutation = MutationPatch.builder()

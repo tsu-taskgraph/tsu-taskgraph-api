@@ -77,4 +77,12 @@ public class AuditEventPublisher {
     public void publishAiSkeletonGeneratedEvent(Object source, Project project, GenerateSkeletonResponse response) {
         publisher.publishEvent(new AiSkeletonGeneratedEvent(source, project, response));
     }
+
+    public void publishAiEnrichmentCompletedEvent(Object source, Task task) {
+        publisher.publishEvent(new AiEnrichmentCompletedEvent(source, task));
+    }
+
+    public void publishAiEnrichmentFailedEvent(Object source, Task task, String error) {
+        publisher.publishEvent(new AiEnrichmentFailedEvent(source, task, error));
+    }
 }

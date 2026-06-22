@@ -17,6 +17,7 @@ services:
       - APP_CORS_ALLOWED_ORIGINS=http://localhost:*
       - AI_BRIDGE_URL=http://localhost:8000
       - AI_BRIDGE_INTERNAL_SECRET=super-secret-key
+      - BASE_URL=http://localhost:8000
 
     depends_on:
       - task-graph-bd
