@@ -355,20 +355,28 @@ public class ActionLogListener {
         var project = wikiPage.getProject();
 
         var metadata = new HashMap<String, Object>();
-        metadata.put("actorId", actor.getId());
-        metadata.put("actorDisplayName", actor.getDisplayName());
         metadata.put("wikiPageId", wikiPage.getId());
         metadata.put("wikiPageTitle", wikiPage.getTitle());
 
-        ActionLogEntry logEntry = ActionLogEntry.builder()
+        ActionLogEntry.ActionLogEntryBuilder logEntryBuilder = ActionLogEntry.builder()
                 .project(project)
-                .actorType(AuthorType.USER)
                 .eventType(ActionLogEventType.WIKI_PAGE_CREATED)
-                .description(String.format("Пользователь '%s' создал Wiki-страницу '%s'", actor.getDisplayName(), wikiPage.getTitle()))
-                .metadata(metadata)
-                .build();
+                .metadata(metadata);
 
-        actionLogRepository.save(logEntry);
+        if (actor != null) {
+            metadata.put("actorId", actor.getId());
+            metadata.put("actorDisplayName", actor.getDisplayName());
+            logEntryBuilder
+                    .actorType(AuthorType.USER)
+                    .description(String.format("Пользователь '%s' создал Wiki-страницу '%s'", actor.getDisplayName(), wikiPage.getTitle()));
+        } else {
+            metadata.put("actorDisplayName", AuthorType.AI_DISPLAY_NAME);
+            logEntryBuilder
+                    .actorType(AuthorType.AI)
+                    .description(String.format("ИИ создал Wiki-страницу '%s'", wikiPage.getTitle()));
+        }
+
+        actionLogRepository.save(logEntryBuilder.build());
     }
 
     @TransactionalEventListener
@@ -378,20 +386,28 @@ public class ActionLogListener {
         var project = wikiPage.getProject();
 
         var metadata = new HashMap<String, Object>();
-        metadata.put("actorId", actor.getId());
-        metadata.put("actorDisplayName", actor.getDisplayName());
         metadata.put("wikiPageId", wikiPage.getId());
         metadata.put("wikiPageTitle", wikiPage.getTitle());
 
-        ActionLogEntry logEntry = ActionLogEntry.builder()
+        ActionLogEntry.ActionLogEntryBuilder logEntryBuilder = ActionLogEntry.builder()
                 .project(project)
-                .actorType(AuthorType.USER)
                 .eventType(ActionLogEventType.WIKI_PAGE_UPDATED)
-                .description(String.format("Пользователь '%s' обновил Wiki-страницу '%s'", actor.getDisplayName(), wikiPage.getTitle()))
-                .metadata(metadata)
-                .build();
+                .metadata(metadata);
 
-        actionLogRepository.save(logEntry);
+        if (actor != null) {
+            metadata.put("actorId", actor.getId());
+            metadata.put("actorDisplayName", actor.getDisplayName());
+            logEntryBuilder
+                    .actorType(AuthorType.USER)
+                    .description(String.format("Пользователь '%s' обновил Wiki-страницу '%s'", actor.getDisplayName(), wikiPage.getTitle()));
+        } else {
+            metadata.put("actorDisplayName", AuthorType.AI_DISPLAY_NAME);
+            logEntryBuilder
+                    .actorType(AuthorType.AI)
+                    .description(String.format("ИИ обновил Wiki-страницу '%s'", wikiPage.getTitle()));
+        }
+
+        actionLogRepository.save(logEntryBuilder.build());
     }
 
     @TransactionalEventListener
@@ -413,6 +429,47 @@ public class ActionLogListener {
                 .eventType(ActionLogEventType.AI_SKELETON_GENERATED)
                 .description(String.format("ИИ сгенерировал скелет проекта: %d задач, %d зависимостей.",
                         response.getNodes().size(), response.getEdges().size()))
+                .metadata(metadata)
+                .build();
+
+        actionLogRepository.save(logEntry);
+    }
+
+    @TransactionalEventListener
+    public void handleAiEnrichmentCompleted(AiEnrichmentCompletedEvent event) {
+        var task = event.getTask();
+        var project = task.getProject();
+
+        var metadata = new HashMap<String, Object>();
+        metadata.put("taskId", task.getId());
+        metadata.put("taskTitle", task.getTitle());
+
+        ActionLogEntry logEntry = ActionLogEntry.builder()
+                .project(project)
+                .actorType(AuthorType.AI)
+                .eventType(ActionLogEventType.AI_ENRICHMENT_COMPLETED)
+                .description(String.format("ИИ успешно обогатил задачу '%s'", task.getTitle()))
+                .metadata(metadata)
+                .build();
+
+        actionLogRepository.save(logEntry);
+    }
+
+    @TransactionalEventListener
+    public void handleAiEnrichmentFailed(AiEnrichmentFailedEvent event) {
+        var task = event.getTask();
+        var project = task.getProject();
+
+        var metadata = new HashMap<String, Object>();
+        metadata.put("taskId", task.getId());
+        metadata.put("taskTitle", task.getTitle());
+        metadata.put("error", event.getError());
+
+        ActionLogEntry logEntry = ActionLogEntry.builder()
+                .project(project)
+                .actorType(AuthorType.AI)
+                .eventType(ActionLogEventType.AI_ENRICHMENT_FAILED)
+                .description(String.format("ИИ не смог обогатить задачу '%s'", task.getTitle()))
                 .metadata(metadata)
                 .build();
 

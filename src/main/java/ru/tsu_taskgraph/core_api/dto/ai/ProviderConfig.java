@@ -11,5 +11,5 @@ public class ProviderConfig {
     private String provider;
     private String apiKey;
     private String model;
-    private String ollamaBaseUrl;
+    private String customBaseUrl;
 }

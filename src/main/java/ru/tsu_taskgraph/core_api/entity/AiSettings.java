@@ -27,7 +27,7 @@ public class AiSettings {
 
     private String apiKeyMasked;
 
-    private String ollamaBaseUrl;
+    private String customBaseUrl;
 
     @OneToOne(mappedBy = "aiSettings")
     private User user;

@@ -30,6 +30,7 @@ services:
       APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:-http://localhost:*}
       AI_BRIDGE_URL: ${AI_BRIDGE_URL}
       AI_BRIDGE_INTERNAL_SECRET: ${AI_BRIDGE_INTERNAL_SECRET}
+      BASE_URL: ${BASE_URL}
     env_file:
       - .env
 

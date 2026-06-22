@@ -52,16 +52,20 @@ public class WikiService {
             task = taskUtil.getTaskById(request.getTaskId());
         }
 
-        WikiPage page = WikiPage.builder()
+        WikiPage.WikiPageBuilder pageBuilder = WikiPage.builder()
                 .project(project)
                 .task(task)
                 .title(request.getTitle())
                 .content(request.getContent())
-                .authorId(currentUser.getId())
-                .authorType(AuthorType.USER)
-                .version(1)
-                .build();
+                .version(1);
 
+        if (currentUser != null) {
+            pageBuilder.authorId(currentUser.getId()).authorType(AuthorType.USER);
+        } else {
+            pageBuilder.authorType(AuthorType.AI);
+        }
+
+        WikiPage page = pageBuilder.build();
         page = wikiPageRepository.save(page);
 
         auditEventPublisher.publishWikiPageCreatedEvent(this, page, currentUser);
