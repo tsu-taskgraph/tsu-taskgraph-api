@@ -3,7 +3,6 @@ package ru.tsu_taskgraph.core_api.domain.event;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionalEventListener;
-import ru.tsu_taskgraph.core_api.dto.ai.GenerateSkeletonResponse;
 import ru.tsu_taskgraph.core_api.entity.ActionLogEntry;
 import ru.tsu_taskgraph.core_api.entity.ActionLogEventType;
 import ru.tsu_taskgraph.core_api.entity.AuthorType;
@@ -11,7 +10,6 @@ import ru.tsu_taskgraph.core_api.entity.User;
 import ru.tsu_taskgraph.core_api.repository.ActionLogRepository;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
