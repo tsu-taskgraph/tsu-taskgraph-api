@@ -43,3 +43,7 @@ app:
     local-dir: ${APP_STORAGE_LOCAL_DIR:local_data}
   encryption:
     key: ${APP_ENCRYPTION_KEY:12345678901234567890123456789012}
+
+ai-bridge:
+  url: ${AI_BRIDGE_URL:http://localhost:8000}
+  internal-secret: ${AI_BRIDGE_INTERNAL_SECRET:super-secret-key}

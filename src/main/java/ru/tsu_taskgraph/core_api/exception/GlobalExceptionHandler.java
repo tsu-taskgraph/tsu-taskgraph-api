@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.tsu_taskgraph.core_api.dto.error.CycleErrorResponse;
 import ru.tsu_taskgraph.core_api.dto.error.ErrorResponse;
 
 import java.time.LocalDateTime;
@@ -74,6 +75,19 @@ public class GlobalExceptionHandler {
             return new ErrorResponse("Ресурс был изменен другим пользователем. Пожалуйста, обновите данные и попробуйте снова.", LocalDateTime.now());
         }
         return new ErrorResponse(ex.getMessage(), LocalDateTime.now());
+    }
+
+    // Обработка циклической зависимости от AI (400 Bad Request)
+    @Hidden
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(AiCycleException.class)
+    public CycleErrorResponse handleAiCycleException(AiCycleException ex) {
+        log.warn("AI generated a cycle: {}", ex.getMessage());
+        return new CycleErrorResponse(
+                ex.getMessage(),
+                LocalDateTime.now(),
+                ex.getCycle()
+        );
     }
 
     // Обработка ошибок валидации @Valid (400 Bad Request)

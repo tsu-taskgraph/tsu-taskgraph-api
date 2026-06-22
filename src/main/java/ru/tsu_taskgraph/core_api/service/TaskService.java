@@ -108,7 +108,7 @@ public class TaskService {
     public TaskStatusUpdateResponse updateTaskStatus(UUID taskId, UpdateTaskStatusRequest request, User currentUser) {
         Task task = taskUtil.getTaskById(taskId);
         TaskStatus oldStatus = task.getStatus();
-        
+
         if (oldStatus != request.getStatus()) {
             task.setStatus(request.getStatus());
             auditEventPublisher.publishTaskStatusChangedEvent(this, task, oldStatus, currentUser);
