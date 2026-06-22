@@ -31,4 +31,8 @@ public interface AiBridgeClient {
     @PostMapping("/api/v1/ai/enrich-task")
     EnrichTaskJobResponse enrichTask(@RequestHeader("X-Internal-Secret") String secret,
                                      @RequestBody EnrichTaskRequest request);
+
+    @PostMapping("/api/v1/ai/mutate")
+    AiMutateGraphResponse mutateGraph(@RequestHeader("X-Internal-Secret") String secret,
+                                      @RequestBody AiMutateGraphRequest request);
 }

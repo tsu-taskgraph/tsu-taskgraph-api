@@ -11,12 +11,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.tsu_taskgraph.core_api.dto.ai.AiRequestConfig;
 import ru.tsu_taskgraph.core_api.dto.project.*;
 import ru.tsu_taskgraph.core_api.entity.ProjectStatus;
 import ru.tsu_taskgraph.core_api.entity.User;
+import ru.tsu_taskgraph.core_api.service.MutateService;
 import ru.tsu_taskgraph.core_api.service.ProjectGraphService;
 import ru.tsu_taskgraph.core_api.service.ProjectService;
 import ru.tsu_taskgraph.core_api.util.UserUtil;
@@ -33,6 +35,7 @@ public class ProjectController {
 
     private final ProjectService projectService;
     private final ProjectGraphService projectGraphService;
+    private final MutateService mutateService;
     private final UserUtil userUtil;
 
     @PostMapping
@@ -58,6 +61,28 @@ public class ProjectController {
                 .customBaseUrl(customBaseUrl)
                 .build();
         return projectService.createProject(request, currentUser.getId(), aiConfig);
+    }
+
+    @PostMapping("/{projectId}/mutate")
+    @Operation(summary = "Динамическая мутация графа (Фаза 3)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Граф обновлён"),
+            @ApiResponse(responseCode = "400", description = "Ошибка при обращении к AI-сервису или обнаружен цикл")
+    })
+    public ResponseEntity<ProjectGraphResponse> mutateGraph(@PathVariable UUID projectId,
+                                                            @Valid @RequestBody MutateGraphRequest request,
+                                                            @RequestHeader(value = "X-AI-Provider", required = false) String provider,
+                                                            @RequestHeader(value = "X-AI-API-Key", required = false) String apiKey,
+                                                            @RequestHeader(value = "X-AI-Model", required = false) String model,
+                                                            @RequestHeader(value = "X-Custom-Base-URL", required = false) String customBaseUrl,
+                                                            @RequestHeader(value = "X-Enable-Smart-Recovery", required = false) boolean enableSmartRecovery) {
+        AiRequestConfig aiConfig = AiRequestConfig.builder()
+                .provider(provider)
+                .apiKey(apiKey)
+                .model(model)
+                .customBaseUrl(customBaseUrl)
+                .build();
+        return ResponseEntity.ok(mutateService.mutateGraph(projectId, request, aiConfig, enableSmartRecovery));
     }
 
     @GetMapping

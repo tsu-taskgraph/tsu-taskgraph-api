@@ -66,68 +66,24 @@ public class AiService {
         }
     }
 
-    private void processSkeletonResponse(Project project, GenerateSkeletonResponse response, ProviderConfig providerConfig) {
-        for (int i = 0; i < MAX_RECOVERY_RETRIES; i++) {
-            List<String> cycle = cycleDetector.findCycleInSkeleton(response.getNodes(), response.getEdges());
+    public MutationPatch getMutationPatch(Project project, String prompt, AiRequestConfig aiConfig) {
+        ProviderConfig providerConfig = resolveProviderConfig(aiConfig, project.getOwner());
+        List<Task> tasks = taskRepository.findByProjectId(project.getId());
+        List<Edge> edges = edgeRepository.findByProjectId(project.getId());
+        GraphSnapshot snapshot = aiMapper.createGraphSnapshot(tasks, edges);
 
-            if (cycle.isEmpty()) {
-                // Цикла нет, сохраняем и выходим
-                saveSkeleton(project, response);
-                return;
-            }
+        AiMutateGraphRequest mutateRequest = AiMutateGraphRequest.builder()
+                .currentGraph(snapshot)
+                .prompt(prompt)
+                .projectName(project.getName())
+                .techStack(project.getTechStack())
+                .aiEstimate(project.getAiEstimate())
+                .providerConfig(providerConfig)
+                .build();
 
-            // Цикл найден, пытаемся исправить
-            log.warn("Обнаружен цикл в сгенерированном графе для проекта {}. Попытка #{}", project.getId(), i + 1);
-            SmartRecoveryRequest recoveryRequest = createRecoveryRequest(project, response, cycle, providerConfig);
-            SmartRecoveryResponse recoveryResponse = smartRecoveryService.recover(recoveryRequest);
-
-            // Обновляем граф для следующей итерации
-            response.setNodes(recoveryResponse.getFixedPatch().getNewNodes());
-            response.setEdges(recoveryResponse.getFixedPatch().getNewEdges());
-        }
-
-        // Если после всех попыток цикл не устранен
-        throw new BadRequestException("ИИ не смог сгенерировать корректный граф задач после " + MAX_RECOVERY_RETRIES + " попыток.");
+        AiMutateGraphResponse mutateResponse = aiBridgeClient.mutateGraph(internalSecret, mutateRequest);
+        return mutateResponse.getPatch();
     }
-
-    private void saveSkeleton(Project project, GenerateSkeletonResponse response) {
-        Map<String, Task> tempIdToTaskMap = new HashMap<>();
-        List<Task> tasks = response.getNodes().stream()
-                .map(node -> {
-                    Task task = Task.builder()
-                            .project(project)
-                            .title(node.getTitle())
-                            .description(node.getDescription())
-                            .category(node.getCategory())
-                            .estimatedHours(node.getEstimatedHours())
-                            .status(TaskStatus.LOCKED)
-                            .build();
-                    tempIdToTaskMap.put(node.getTempId(), task);
-                    return task;
-                })
-                .collect(Collectors.toList());
-        taskRepository.saveAll(tasks);
-
-        List<Edge> edges = response.getEdges().stream()
-                .map(edgeDto -> {
-                    Task source = tempIdToTaskMap.get(edgeDto.getSourceTempId());
-                    Task target = tempIdToTaskMap.get(edgeDto.getTargetTempId());
-                    if (source == null || target == null) return null;
-                    return Edge.builder()
-                            .project(project)
-                            .sourceTask(source)
-                            .targetTask(target)
-                            .build();
-                })
-                .filter(java.util.Objects::nonNull)
-                .collect(Collectors.toList());
-        edgeRepository.saveAll(edges);
-
-        project.setStatus(ProjectStatus.ACTIVE);
-        projectRepository.save(project);
-        log.info("Скелет для проекта {} успешно сгенерирован и сохранен.", project.getId());
-    }
-
 
     @Async
     public void triggerTasksEnrichment(Project project, ProviderConfig providerConfig) {
@@ -176,6 +132,67 @@ public class AiService {
                 .build();
     }
 
+    private void processSkeletonResponse(Project project, GenerateSkeletonResponse response, ProviderConfig providerConfig) {
+        for (int i = 0; i < MAX_RECOVERY_RETRIES; i++) {
+            List<String> cycle = cycleDetector.findCycleInSkeleton(response.getNodes(), response.getEdges());
+
+            if (cycle.isEmpty()) {
+                // Цикла нет, сохраняем и выходим
+                saveSkeleton(project, response);
+                return;
+            }
+
+            // Цикл найден, пытаемся исправить
+            log.warn("Обнаружен цикл в сгенерированном графе для проекта {}. Попытка #{}", project.getId(), i + 1);
+            SmartRecoveryRequest recoveryRequest = createRecoveryRequest(project, response, cycle, providerConfig);
+            SmartRecoveryResponse recoveryResponse = smartRecoveryService.recover(recoveryRequest);
+            
+            // Обновляем граф для следующей итерации
+            response.setNodes(recoveryResponse.getFixedPatch().getNewNodes());
+            response.setEdges(recoveryResponse.getFixedPatch().getNewEdges());
+        }
+
+        // Если после всех попыток цикл не устранен
+        throw new BadRequestException("ИИ не смог сгенерировать корректный граф задач после " + MAX_RECOVERY_RETRIES + " попыток.");
+    }
+
+    private void saveSkeleton(Project project, GenerateSkeletonResponse response) {
+        Map<String, Task> tempIdToTaskMap = new HashMap<>();
+        List<Task> tasks = response.getNodes().stream()
+                .map(node -> {
+                    Task task = Task.builder()
+                            .project(project)
+                            .title(node.getTitle())
+                            .description(node.getDescription())
+                            .category(node.getCategory())
+                            .estimatedHours(node.getEstimatedHours())
+                            .status(TaskStatus.LOCKED)
+                            .build();
+                    tempIdToTaskMap.put(node.getTempId(), task);
+                    return task;
+                })
+                .collect(Collectors.toList());
+        taskRepository.saveAll(tasks);
+
+        List<Edge> edges = response.getEdges().stream()
+                .map(edgeDto -> {
+                    Task source = tempIdToTaskMap.get(edgeDto.getSourceTempId());
+                    Task target = tempIdToTaskMap.get(edgeDto.getTargetTempId());
+                    if (source == null || target == null) return null;
+                    return Edge.builder()
+                            .project(project)
+                            .sourceTask(source)
+                            .targetTask(target)
+                            .build();
+                })
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toList());
+        edgeRepository.saveAll(edges);
+
+        project.setStatus(ProjectStatus.ACTIVE);
+        projectRepository.save(project);
+        log.info("Скелет для проекта {} успешно сгенерирован и сохранен.", project.getId());
+    }
 
     private SmartRecoveryRequest createRecoveryRequest(Project project, GenerateSkeletonResponse response, List<String> cycle, ProviderConfig providerConfig) {
         MutationPatch failedMutation = MutationPatch.builder()
@@ -194,7 +211,7 @@ public class AiService {
                 .build();
     }
 
-    private ProviderConfig resolveProviderConfig(AiRequestConfig requestConfig, User user) {
+    public ProviderConfig resolveProviderConfig(AiRequestConfig requestConfig, User user) {
         // Способ 1: Из заголовков
         if (StringUtils.hasText(requestConfig.getProvider())) {
             return ProviderConfig.builder()
