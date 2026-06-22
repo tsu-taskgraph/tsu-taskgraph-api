@@ -11,7 +11,7 @@ import java.util.UUID;
 public class SmartRecoveryRequest {
     private GraphSnapshot currentGraph;
     private MutationPatch failedMutation;
-    private List<UUID> cycleNodes;
+    private List<String> cycleNodes;
     private String projectName;
     private List<String> techStack;
     private Boolean aiEstimate;

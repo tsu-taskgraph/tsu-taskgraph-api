@@ -1,6 +1,8 @@
 package ru.tsu_taskgraph.core_api.util;
 
 import org.springframework.stereotype.Component;
+import ru.tsu_taskgraph.core_api.dto.ai.SkeletonEdge;
+import ru.tsu_taskgraph.core_api.dto.ai.SkeletonNode;
 import ru.tsu_taskgraph.core_api.entity.Edge;
 import ru.tsu_taskgraph.core_api.exception.CycleDetectedException;
 
@@ -15,6 +17,7 @@ public class CycleDetector {
 
     /**
      * Проверяет, создаст ли новое ребро цикл. Бросает исключение при первом найденном цикле.
+     * Оптимизирован для проверки одного добавляемого ребра.
      *
      * @param existingEdges Существующие рёбра в проекте.
      * @param newSourceId   ID исходной задачи (откуда идёт ребро).
@@ -31,23 +34,24 @@ public class CycleDetector {
     }
 
     /**
-     * Находит один любой цикл в полном наборе рёбер.
+     * Находит один любой цикл в графе, представленном в виде DTO (до сохранения в БД).
      *
-     * @param edges Полный список рёбер для проверки.
-     * @return Список UUID узлов, образующих цикл (например, [A, B, C, A]), или пустой список, если циклов нет.
+     * @param nodes Список узлов-скелетонов.
+     * @param edges Список рёбер-скелетонов.
+     * @return Список строковых tempId узлов, образующих цикл (например, [A, B, C, A]), или пустой список, если циклов нет.
      */
-    public List<UUID> findCycle(List<Edge> edges) {
-        Map<UUID, List<UUID>> adj = buildAdjacencyList(edges);
-        Set<UUID> allNodes = adj.keySet();
-        Set<UUID> visited = new HashSet<>();
-        Set<UUID> recursionStack = new HashSet<>();
+    public List<String> findCycleInSkeleton(List<SkeletonNode> nodes, List<SkeletonEdge> edges) {
+        Map<String, List<String>> adj = buildAdjacencyListFromSkeleton(nodes, edges);
+        Set<String> allNodes = adj.keySet();
+        Set<String> visited = new HashSet<>();
+        Set<String> recursionStack = new HashSet<>();
 
-        for (UUID node : allNodes) {
+        for (String node : allNodes) {
             if (!visited.contains(node)) {
-                List<UUID> cyclePath = new ArrayList<>();
-                if (isCyclicUtil(node, adj, visited, recursionStack, cyclePath)) {
+                List<String> cyclePath = new ArrayList<>();
+                if (isCyclicUtilString(node, adj, visited, recursionStack, cyclePath)) {
                     int cycleStartIndex = cyclePath.indexOf(cyclePath.get(cyclePath.size() - 1));
-                    List<UUID> cycle = new ArrayList<>(cyclePath.subList(cycleStartIndex, cyclePath.size() - 1));
+                    List<String> cycle = new ArrayList<>(cyclePath.subList(cycleStartIndex, cyclePath.size() - 1));
                     if (!cycle.isEmpty()) {
                         cycle.add(cycle.get(0));
                     }
@@ -68,7 +72,7 @@ public class CycleDetector {
     }
 
     /**
-     * Строит список смежности из полного набора рёбер.
+     * Строит список смежности из полного набора рёбер-сущностей.
      */
     private Map<UUID, List<UUID>> buildAdjacencyList(List<Edge> edges) {
         Map<UUID, List<UUID>> adj = new HashMap<>();
@@ -82,7 +86,19 @@ public class CycleDetector {
     }
 
     /**
-     * Рекурсивная утилита для Поиска в глубину (DFS).
+     * Строит список смежности из DTO-скелетонов.
+     */
+    private Map<String, List<String>> buildAdjacencyListFromSkeleton(List<SkeletonNode> nodes, List<SkeletonEdge> edges) {
+        Map<String, List<String>> adj = new HashMap<>();
+        nodes.forEach(node -> adj.put(node.getTempId(), new ArrayList<>()));
+        for (SkeletonEdge edge : edges) {
+            adj.computeIfAbsent(edge.getSourceTempId(), k -> new ArrayList<>()).add(edge.getTargetTempId());
+        }
+        return adj;
+    }
+
+    /**
+     * Рекурсивная утилита для Поиска в глубину (DFS) для графа с UUID.
      *
      * @param currentNode    Текущая вершина для проверки.
      * @param adj            Список смежности графа.
@@ -118,6 +134,33 @@ public class CycleDetector {
         if (currentPath != null) {
             currentPath.remove(currentPath.size() - 1);
         }
+        return false;
+    }
+    
+    /**
+     * Рекурсивная утилита для Поиска в глубину (DFS) для графа со строковыми ID.
+     */
+    private boolean isCyclicUtilString(String currentNode, Map<String, List<String>> adj, Set<String> visited, Set<String> recursionStack, List<String> currentPath) {
+        visited.add(currentNode);
+        recursionStack.add(currentNode);
+        currentPath.add(currentNode);
+
+        List<String> neighbours = adj.get(currentNode);
+        if (neighbours != null) {
+            for (String neighbour : neighbours) {
+                if (!visited.contains(neighbour)) {
+                    if (isCyclicUtilString(neighbour, adj, visited, recursionStack, currentPath)) {
+                        return true;
+                    }
+                } else if (recursionStack.contains(neighbour)) {
+                    currentPath.add(neighbour);
+                    return true;
+                }
+            }
+        }
+
+        recursionStack.remove(currentNode);
+        currentPath.remove(currentPath.size() - 1);
         return false;
     }
 }
