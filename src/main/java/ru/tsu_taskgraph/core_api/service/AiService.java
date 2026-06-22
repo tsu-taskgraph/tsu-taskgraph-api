@@ -21,7 +21,6 @@ import ru.tsu_taskgraph.core_api.util.CycleDetector;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -64,18 +63,11 @@ public class AiService {
 
     private void processSkeletonResponse(Project project, GenerateSkeletonResponse response, ProviderConfig providerConfig) {
         for (int i = 0; i < MAX_RECOVERY_RETRIES; i++) {
-            Map<String, Task> tempIdToTaskMap = new HashMap<>();
-            List<Task> tasks = buildTasksFromNodes(project, response.getNodes(), tempIdToTaskMap);
-            List<Edge> edges = buildEdgesFromDto(project, response.getEdges(), tempIdToTaskMap);
+            List<String> cycle = cycleDetector.findCycleInSkeleton(response.getNodes(), response.getEdges());
 
-            List<UUID> cycle = cycleDetector.findCycle(edges);
             if (cycle.isEmpty()) {
                 // Цикла нет, сохраняем и выходим
-                taskRepository.saveAll(tasks);
-                edgeRepository.saveAll(edges);
-                project.setStatus(ProjectStatus.ACTIVE);
-                projectRepository.save(project);
-                log.info("Скелет для проекта {} успешно сгенерирован и сохранен.", project.getId());
+                saveSkeleton(project, response);
                 return;
             }
 
@@ -93,8 +85,9 @@ public class AiService {
         throw new BadRequestException("ИИ не смог сгенерировать корректный граф задач после " + MAX_RECOVERY_RETRIES + " попыток.");
     }
 
-    private List<Task> buildTasksFromNodes(Project project, List<SkeletonNode> nodes, Map<String, Task> tempIdToTaskMap) {
-        return nodes.stream()
+    private void saveSkeleton(Project project, GenerateSkeletonResponse response) {
+        Map<String, Task> tempIdToTaskMap = new HashMap<>();
+        List<Task> tasks = response.getNodes().stream()
                 .map(node -> {
                     Task task = Task.builder()
                             .project(project)
@@ -108,10 +101,9 @@ public class AiService {
                     return task;
                 })
                 .collect(Collectors.toList());
-    }
+        taskRepository.saveAll(tasks);
 
-    private List<Edge> buildEdgesFromDto(Project project, List<SkeletonEdge> edgeDtos, Map<String, Task> tempIdToTaskMap) {
-        return edgeDtos.stream()
+        List<Edge> edges = response.getEdges().stream()
                 .map(edgeDto -> {
                     Task source = tempIdToTaskMap.get(edgeDto.getSourceTempId());
                     Task target = tempIdToTaskMap.get(edgeDto.getTargetTempId());
@@ -124,9 +116,14 @@ public class AiService {
                 })
                 .filter(java.util.Objects::nonNull)
                 .collect(Collectors.toList());
+        edgeRepository.saveAll(edges);
+
+        project.setStatus(ProjectStatus.ACTIVE);
+        projectRepository.save(project);
+        log.info("Скелет для проекта {} успешно сгенерирован и сохранен.", project.getId());
     }
 
-    private SmartRecoveryRequest createRecoveryRequest(Project project, GenerateSkeletonResponse response, List<UUID> cycle, ProviderConfig providerConfig) {
+    private SmartRecoveryRequest createRecoveryRequest(Project project, GenerateSkeletonResponse response, List<String> cycle, ProviderConfig providerConfig) {
         MutationPatch failedMutation = MutationPatch.builder()
                 .newNodes(response.getNodes())
                 .newEdges(response.getEdges())

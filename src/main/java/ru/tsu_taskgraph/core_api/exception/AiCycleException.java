@@ -7,10 +7,10 @@ import java.util.UUID;
 
 @Getter
 public class AiCycleException extends RuntimeException {
-    private final List<UUID> cycle;
+    private final List<String> cycle;
     private final boolean smartRecoveryAvailable;
 
-    public AiCycleException(String message, List<UUID> cycle, boolean smartRecoveryAvailable) {
+    public AiCycleException(String message, List<String> cycle, boolean smartRecoveryAvailable) {
         super(message);
         this.cycle = cycle;
         this.smartRecoveryAvailable = smartRecoveryAvailable;
