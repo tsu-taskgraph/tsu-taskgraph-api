@@ -3,7 +3,6 @@ package ru.tsu_taskgraph.core_api.exception;
 import lombok.Getter;
 
 import java.util.List;
-import java.util.UUID;
 
 @Getter
 public class AiCycleException extends RuntimeException {

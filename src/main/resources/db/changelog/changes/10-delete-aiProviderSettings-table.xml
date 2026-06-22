@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+
+    <changeSet id="1782095134061-1" author="Administrator">
+        <dropForeignKeyConstraint baseTableName="ai_settings" constraintName="fk_ai_settings_on_provider_settings"/>
+    </changeSet>
+    <changeSet id="1782095134061-3" author="Administrator">
+        <dropTable cascadeConstraints="true" tableName="ai_provider_settings"/>
+    </changeSet>
+    <changeSet id="1782095134061-4" author="Administrator">
+        <dropColumn columnName="provider_settings_id" tableName="ai_settings"/>
+    </changeSet>
+</databaseChangeLog>

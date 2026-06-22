@@ -29,10 +29,6 @@ public class AiSettings {
 
     private String ollamaBaseUrl;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "provider_settings_id", referencedColumnName = "id")
-    private AiProviderSettings aiProviderSettings;
-
     @OneToOne(mappedBy = "aiSettings")
     private User user;
 }

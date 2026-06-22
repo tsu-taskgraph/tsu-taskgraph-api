@@ -17,5 +17,4 @@ public class UpdateAiSettingsRequest {
     private String model;
     private String apiKey;
     private String ollamaBaseUrl;
-    private AiProviderSettings aiProviderSettings;
 }

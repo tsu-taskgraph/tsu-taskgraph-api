@@ -136,7 +136,7 @@ public class CycleDetector {
         }
         return false;
     }
-    
+
     /**
      * Рекурсивная утилита для Поиска в глубину (DFS) для графа со строковыми ID.
      */

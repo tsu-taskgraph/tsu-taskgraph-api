@@ -16,5 +16,4 @@ public class SavedAiSettings {
     private String apiKeyMasked;
     private boolean hasApiKey;
     private String ollamaBaseUrl;
-    private AiProviderSettings aiProviderSettings;
 }
