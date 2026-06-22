@@ -15,5 +15,5 @@ public class SavedAiSettings {
     private String model;
     private String apiKeyMasked;
     private boolean hasApiKey;
-    private String ollamaBaseUrl;
+    private String customBaseUrl;
 }

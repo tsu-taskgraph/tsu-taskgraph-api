@@ -49,13 +49,13 @@ public class ProjectController {
                                     @RequestHeader(value = "X-AI-Provider", required = false) String provider,
                                     @RequestHeader(value = "X-AI-API-Key", required = false) String apiKey,
                                     @RequestHeader(value = "X-AI-Model", required = false) String model,
-                                    @RequestHeader(value = "X-Ollama-Base-URL", required = false) String ollamaBaseUrl) {
+                                    @RequestHeader(value = "X-Custom-Base-URL", required = false) String customBaseUrl) {
         User currentUser = userUtil.getCurrentUserFromContext();
         AiRequestConfig aiConfig = AiRequestConfig.builder()
                 .provider(provider)
                 .apiKey(apiKey)
                 .model(model)
-                .ollamaBaseUrl(ollamaBaseUrl)
+                .customBaseUrl(customBaseUrl)
                 .build();
         return projectService.createProject(request, currentUser.getId(), aiConfig);
     }

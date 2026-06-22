@@ -201,7 +201,7 @@ public class AiService {
                     .provider(requestConfig.getProvider())
                     .apiKey(requestConfig.getApiKey())
                     .model(requestConfig.getModel())
-                    .ollamaBaseUrl(requestConfig.getOllamaBaseUrl())
+                    .customBaseUrl(requestConfig.getCustomBaseUrl())
                     .build();
         }
 
@@ -216,7 +216,7 @@ public class AiService {
                     .provider(userSettings.getProvider().name())
                     .apiKey(decryptedApiKey)
                     .model(userSettings.getModel())
-                    .ollamaBaseUrl(userSettings.getOllamaBaseUrl())
+                    .customBaseUrl(userSettings.getCustomBaseUrl())
                     .build();
         }
 
