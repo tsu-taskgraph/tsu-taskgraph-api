@@ -10,9 +10,9 @@ import java.util.UUID;
 @Getter
 @Setter
 public class CycleErrorResponse extends ErrorResponse {
-    private List<UUID> cycle;
+    private List<String> cycle;
 
-    public CycleErrorResponse(String message, LocalDateTime timestamp, List<UUID> cycle) {
+    public CycleErrorResponse(String message, LocalDateTime timestamp, List<String> cycle) {
         super(message, timestamp);
         this.cycle = cycle;
     }
