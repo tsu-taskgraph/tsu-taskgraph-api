@@ -63,6 +63,34 @@ public class CycleDetector {
     }
 
     /**
+     * Находит один любой цикл в полном наборе рёбер-сущностей.
+     *
+     * @param edges Полный список рёбер для проверки.
+     * @return Список UUID узлов, образующих цикл (например, [A, B, C, A]), или пустой список, если циклов нет.
+     */
+    public List<UUID> findCycleInEdges(List<Edge> edges) {
+        Map<UUID, List<UUID>> adj = buildAdjacencyList(edges);
+        Set<UUID> allNodes = adj.keySet();
+        Set<UUID> visited = new HashSet<>();
+        Set<UUID> recursionStack = new HashSet<>();
+
+        for (UUID node : allNodes) {
+            if (!visited.contains(node)) {
+                List<UUID> cyclePath = new ArrayList<>();
+                if (isCyclicUtil(node, adj, visited, recursionStack, cyclePath)) {
+                    int cycleStartIndex = cyclePath.indexOf(cyclePath.get(cyclePath.size() - 1));
+                    List<UUID> cycle = new ArrayList<>(cyclePath.subList(cycleStartIndex, cyclePath.size() - 1));
+                    if (!cycle.isEmpty()) {
+                        cycle.add(cycle.get(0));
+                    }
+                    return cycle;
+                }
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    /**
      * Строит список смежности на основе существующих рёбер и одного нового.
      */
     private Map<UUID, List<UUID>> buildAdjacencyList(List<Edge> edges, UUID newSourceId, UUID newTargetId) {
