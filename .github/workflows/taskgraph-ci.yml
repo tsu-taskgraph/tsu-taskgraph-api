@@ -2,15 +2,15 @@ name: Task Graph API CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
-  JAVA_VERSION: '21'
+  JAVA_VERSION: "21"
   DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/tsu-taskgraph-api
-  DEPLOY_USERNAME: 'deployuser'
-  SERVICE_NAME: 'taskgraph-api'
+  DEPLOY_USERNAME: "deployuser"
+  SERVICE_NAME: "taskgraph-api"
 
 jobs:
   build-and-deploy:
@@ -24,9 +24,9 @@ jobs:
       - name: ☕ Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: "temurin"
           java-version: ${{ env.JAVA_VERSION }}
-          cache: 'gradle'
+          cache: "gradle"
 
       - name: 📦 Build with Gradle
         run: |
@@ -76,7 +76,7 @@ jobs:
           script: |
             set -e
             cd /home/${{ env.DEPLOY_USERNAME }}/tsu-taskgraph-api/
-            
+
             echo "🔐 Generating .env file from secrets..."
             echo "POSTGRES_DB=${{ secrets.DB_NAME }}" > .env
             echo "POSTGRES_USER=${{ secrets.DB_USER }}" >> .env
@@ -86,13 +86,15 @@ jobs:
             echo "APP_ENCRYPTION_KEY=${{ secrets.APP_ENCRYPTION_KEY }}" >> .env
             echo "APP_STORAGE_LOCAL_DIR=${{ secrets.APP_STORAGE_LOCAL_DIR }}" >> .env
             echo "APP_CORS_ALLOWED_ORIGINS=${{ secrets.APP_CORS_ALLOWED_ORIGINS }}" >> .env
-            
+            echo "AI_BRIDGE_URL=${{ secrets.AI_BRIDGE_URL }}" >> .env
+            echo "AI_BRIDGE_INTERNAL_SECRET=${{ secrets.AI_BRIDGE_INTERNAL_SECRET }}" >> .env
+
             echo "📥 Pulling latest images..."
             docker compose -f compose.prod.yaml pull api
-            
+
             echo "🚀 Starting containers..."
             docker compose -f compose.prod.yaml up -d
-            
+
             echo "🧹 Cleaning up old images..."
             docker image prune -f
 
