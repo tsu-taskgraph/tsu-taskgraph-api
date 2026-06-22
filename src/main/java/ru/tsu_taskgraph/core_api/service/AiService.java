@@ -75,7 +75,7 @@ public class AiService {
             log.warn("Обнаружен цикл в сгенерированном графе для проекта {}. Попытка #{}", project.getId(), i + 1);
             SmartRecoveryRequest recoveryRequest = createRecoveryRequest(project, response, cycle, providerConfig);
             SmartRecoveryResponse recoveryResponse = smartRecoveryService.recover(recoveryRequest);
-            
+
             // Обновляем граф для следующей итерации
             response.setNodes(recoveryResponse.getFixedPatch().getNewNodes());
             response.setEdges(recoveryResponse.getFixedPatch().getNewEdges());
@@ -148,7 +148,6 @@ public class AiService {
                     .apiKey(requestConfig.getApiKey())
                     .model(requestConfig.getModel())
                     .ollamaBaseUrl(requestConfig.getOllamaBaseUrl())
-                    .settings(ProviderSettings.builder().build())
                     .build();
         }
 
@@ -164,7 +163,6 @@ public class AiService {
                     .apiKey(decryptedApiKey)
                     .model(userSettings.getModel())
                     .ollamaBaseUrl(userSettings.getOllamaBaseUrl())
-                    .settings(aiMapper.toDto(userSettings.getAiProviderSettings()))
                     .build();
         }
 

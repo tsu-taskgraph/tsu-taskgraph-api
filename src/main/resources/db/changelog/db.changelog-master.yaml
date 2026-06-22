@@ -17,3 +17,5 @@ databaseChangeLog:
       file: db/changelog/changes/8-add-version-fields.xml
   - include:
       file: db/changelog/changes/9-create-actionLogEntry-table.xml
+  - include:
+      file: db/changelog/changes/10-delete-aiProviderSettings-table.xml
