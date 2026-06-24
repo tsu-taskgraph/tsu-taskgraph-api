@@ -40,6 +40,7 @@ public class AiService {
     private final AuditEventPublisher auditEventPublisher;
     private final CycleDetector cycleDetector;
     private final SmartRecoveryService smartRecoveryService;
+    private final TaskStatusService taskStatusService;
 
     @Value("${ai-bridge.internal-secret}")
     private String internalSecret;
@@ -188,6 +189,10 @@ public class AiService {
                 .filter(java.util.Objects::nonNull)
                 .collect(Collectors.toList());
         edgeRepository.saveAll(edges);
+
+        log.info("Attempting to unlock initial tasks for project {}", project.getId());
+        tasks.forEach(taskStatusService::tryToUnlockTask);
+        taskRepository.saveAll(tasks);
 
         project.setStatus(ProjectStatus.ACTIVE);
         projectRepository.save(project);
