@@ -46,7 +46,7 @@ public class ActionLogController {
             @Parameter(description = "Фильтр по ID задачи") @RequestParam(required = false) UUID taskId,
             @Parameter(description = "Начало временного диапазона (ISO 8601)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @Parameter(description = "Конец временного диапазона (ISO 8601)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
-            @PageableDefault(size = 50, sort = "createdAt,desc") Pageable pageable
+            @PageableDefault(size = 50) Pageable pageable
     ) {
         return actionLogService.getActionLog(projectId, actorType, eventType, taskId, from, to, pageable);
     }
