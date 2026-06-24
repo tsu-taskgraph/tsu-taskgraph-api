@@ -18,7 +18,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/ai/providers")
+@RequestMapping("/api/v1/providers")
 @RequiredArgsConstructor
 @Tag(name = "AI", description = "Эндпоинты, вызывающие AI Service Bridge")
 public class AiProviderController {
