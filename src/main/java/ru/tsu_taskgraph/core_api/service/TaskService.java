@@ -156,13 +156,8 @@ public class TaskService {
             throw new BadRequestException("Нельзя удалить задачу, от которой зависят другие задачи.");
         }
 
-        List<Edge> parentEdges = edgeRepository.findByTargetTask(taskToDelete);
-        List<UUID> parentIds = parentEdges.stream().map(edge -> edge.getSourceTask().getId()).toList();
-
         auditEventPublisher.publishTaskDeletedEvent(this, taskToDelete, currentUser);
 
         taskRepository.delete(taskToDelete);
-
-        parentIds.forEach(taskStatusService::updateDependentTasks);
     }
 }
