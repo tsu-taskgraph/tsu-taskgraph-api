@@ -3,7 +3,6 @@ package ru.tsu_taskgraph.core_api.domain.event;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.event.TransactionalEventListener;
 import ru.tsu_taskgraph.core_api.entity.*;
 import ru.tsu_taskgraph.core_api.repository.ActionLogRepository;
 import ru.tsu_taskgraph.core_api.util.ProjectUtil;
@@ -25,7 +24,7 @@ public class ActionLogListener {
     private final UserUtil userUtil;
     private final WikiPageUtil wikiPageUtil;
 
-    @TransactionalEventListener
+    @EventListener
     public void handleProjectCreated(ProjectCreatedEvent event) {
         Project project = projectUtil.getProjectById(event.getProject().getId());
         User actor = userUtil.getUserById(event.getActor().getId());
@@ -46,7 +45,7 @@ public class ActionLogListener {
         actionLogRepository.save(logEntry);
     }
 
-    @TransactionalEventListener
+    @EventListener
     public void handleProjectUpdated(ProjectUpdatedEvent event) {
         Project project = projectUtil.getProjectById(event.getProject().getId());
         User actor = userUtil.getUserById(event.getActor().getId());
@@ -67,7 +66,7 @@ public class ActionLogListener {
         actionLogRepository.save(logEntry);
     }
 
-    @TransactionalEventListener
+    @EventListener
     public void handleMemberInvited(MemberInvitedEvent event) {
         ProjectMember member = event.getMember();
         User actor = userUtil.getUserById(event.getActor().getId());
@@ -93,7 +92,7 @@ public class ActionLogListener {
         actionLogRepository.save(logEntry);
     }
 
-    @TransactionalEventListener
+    @EventListener
     public void handleMemberRoleChanged(MemberRoleChangedEvent event) {
         ProjectMember member = event.getMember();
         User actor = userUtil.getUserById(event.getActor().getId());
@@ -144,7 +143,7 @@ public class ActionLogListener {
         actionLogRepository.save(logEntry);
     }
 
-    @TransactionalEventListener
+    @EventListener
     public void handleTaskCreated(TaskCreatedEvent event) {
         Task task = taskUtil.getTaskById(event.getTask().getId());
         User actor = userUtil.getUserById(event.getActor().getId());
@@ -167,7 +166,7 @@ public class ActionLogListener {
         actionLogRepository.save(logEntry);
     }
 
-    @TransactionalEventListener
+    @EventListener
     public void handleTaskUpdated(TaskUpdatedEvent event) {
         Task task = taskUtil.getTaskById(event.getTask().getId());
         User actor = userUtil.getUserById(event.getActor().getId());
@@ -190,7 +189,7 @@ public class ActionLogListener {
         actionLogRepository.save(logEntry);
     }
 
-    @TransactionalEventListener
+    @EventListener
     public void handleTaskStatusChanged(TaskStatusChangedEvent event) {
         Task task = taskUtil.getTaskById(event.getTask().getId());
         User actor = userUtil.getUserById(event.getActor().getId());
@@ -216,7 +215,7 @@ public class ActionLogListener {
         actionLogRepository.save(logEntry);
     }
 
-    @TransactionalEventListener
+    @EventListener
     public void handleTaskAssigned(TaskAssignedEvent event) {
         Task task = taskUtil.getTaskById(event.getTask().getId());
         User actor = userUtil.getUserById(event.getActor().getId());
@@ -272,7 +271,7 @@ public class ActionLogListener {
         actionLogRepository.save(logEntry);
     }
 
-    @TransactionalEventListener
+    @EventListener
     public void handleTimeLogged(TimeLoggedEvent event) {
         TimeLog timeLog = event.getTimeLog();
         User actor = userUtil.getUserById(event.getActor().getId());
@@ -298,7 +297,7 @@ public class ActionLogListener {
         actionLogRepository.save(logEntry);
     }
 
-    @TransactionalEventListener
+    @EventListener
     public void handleEdgeCreated(EdgeCreatedEvent event) {
         Edge edge = event.getEdge();
         User actor = userUtil.getUserById(event.getActor().getId());
@@ -354,7 +353,7 @@ public class ActionLogListener {
         actionLogRepository.save(logEntry);
     }
 
-    @TransactionalEventListener
+    @EventListener
     public void handleWikiPageCreated(WikiPageCreatedEvent event) {
         WikiPage wikiPage = wikiPageUtil.getWikiPageById(event.getWikiPage().getId());
         User actor = event.getActor() != null ? userUtil.getUserById(event.getActor().getId()) : null;
@@ -385,7 +384,7 @@ public class ActionLogListener {
         actionLogRepository.save(logEntryBuilder.build());
     }
 
-    @TransactionalEventListener
+    @EventListener
     public void handleWikiPageUpdated(WikiPageUpdatedEvent event) {
         WikiPage wikiPage = wikiPageUtil.getWikiPageById(event.getWikiPage().getId());
         User actor = event.getActor() != null ? userUtil.getUserById(event.getActor().getId()) : null;
@@ -416,7 +415,7 @@ public class ActionLogListener {
         actionLogRepository.save(logEntryBuilder.build());
     }
 
-    @TransactionalEventListener
+    @EventListener
     public void handleAiSkeletonGenerated(AiSkeletonGeneratedEvent event) {
         Project project = projectUtil.getProjectById(event.getProject().getId());
         var response = event.getResponse();
@@ -441,7 +440,7 @@ public class ActionLogListener {
         actionLogRepository.save(logEntry);
     }
 
-    @TransactionalEventListener
+    @EventListener
     public void handleAiEnrichmentCompleted(AiEnrichmentCompletedEvent event) {
         Task task = taskUtil.getTaskById(event.getTask().getId());
         Project project = task.getProject();
@@ -461,7 +460,7 @@ public class ActionLogListener {
         actionLogRepository.save(logEntry);
     }
 
-    @TransactionalEventListener
+    @EventListener
     public void handleAiEnrichmentFailed(AiEnrichmentFailedEvent event) {
         Task task = taskUtil.getTaskById(event.getTask().getId());
         Project project = task.getProject();
@@ -482,7 +481,7 @@ public class ActionLogListener {
         actionLogRepository.save(logEntry);
     }
 
-    @TransactionalEventListener
+    @EventListener
     public void handleSystemGraphRefresh(SystemGraphRefreshEvent event) {
         Task triggerTask = taskUtil.getTaskById(event.getTriggerTask().getId());
         Project project = triggerTask.getProject();
