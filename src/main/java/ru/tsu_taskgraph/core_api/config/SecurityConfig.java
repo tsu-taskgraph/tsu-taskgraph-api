@@ -80,7 +80,7 @@ public class SecurityConfig {
                         //user
                         .requestMatchers(HttpMethod.GET, "/api/v1/users/me/avatar/*").permitAll()
                         .requestMatchers("/api/v1/users/me/**").authenticated()
-                        .requestMatchers("/api/v1/ai-providers/**").authenticated()
+                        .requestMatchers("/api/v1/providers/**").permitAll()
 
                         .anyRequest().authenticated()
                 )
