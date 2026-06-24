@@ -13,26 +13,26 @@ import java.util.List;
 @FeignClient(name = "ai-bridge", url = "${ai-bridge.url}", configuration = FeignClientConfig.class)
 public interface AiBridgeClient {
 
-    @PostMapping("/api/v1/ai/skeleton")
+    @PostMapping("/api/v1/skeleton")
     GenerateSkeletonResponse generateSkeleton(@RequestHeader("X-Internal-Secret") String secret,
                                               @RequestBody GenerateSkeletonRequest request);
 
-    @PostMapping("/api/v1/ai/smart-recovery")
+    @PostMapping("/api/v1/smart-recovery")
     SmartRecoveryResponse smartRecovery(@RequestHeader("X-Internal-Secret") String secret,
                                         @RequestBody SmartRecoveryRequest request);
 
-    @GetMapping("/api/v1/ai/providers")
+    @GetMapping("/api/v1/providers")
     List<String> getProviders(@RequestHeader("X-Internal-Secret") String secret);
 
-    @PostMapping("/api/v1/ai/providers/models")
+    @PostMapping("/api/v1/providers/models")
     List<String> getModels(@RequestHeader("X-Internal-Secret") String secret,
                            @RequestBody ProviderCheckRequest request);
 
-    @PostMapping("/api/v1/ai/enrich-task")
+    @PostMapping("/api/v1/enrich-task")
     EnrichTaskJobResponse enrichTask(@RequestHeader("X-Internal-Secret") String secret,
                                      @RequestBody EnrichTaskRequest request);
 
-    @PostMapping("/api/v1/ai/mutate")
+    @PostMapping("/api/v1/mutate")
     AiMutateGraphResponse mutateGraph(@RequestHeader("X-Internal-Secret") String secret,
                                       @RequestBody AiMutateGraphRequest request);
 }
