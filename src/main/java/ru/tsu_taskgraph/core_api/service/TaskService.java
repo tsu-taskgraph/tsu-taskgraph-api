@@ -124,6 +124,8 @@ public class TaskService {
             unlockedTasks = taskStatusService.updateDependentTasks(task.getId());
         }
 
+        taskStatusService.eventRefreshByTask(task.getId());
+
         Map<UUID, Integer> layers = graphLayerService.calculateLayers(task.getProject().getId());
         return TaskStatusUpdateResponse.builder()
                 .updatedTask(taskMapper.toNode(task, layers))
@@ -157,6 +159,8 @@ public class TaskService {
         }
 
         auditEventPublisher.publishTaskDeletedEvent(this, taskToDelete, currentUser);
+
+        taskStatusService.eventRefreshByTask(taskToDelete.getId());
 
         taskRepository.delete(taskToDelete);
     }

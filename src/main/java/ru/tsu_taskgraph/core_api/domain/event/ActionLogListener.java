@@ -481,4 +481,24 @@ public class ActionLogListener {
 
         actionLogRepository.save(logEntry);
     }
+
+    @TransactionalEventListener
+    public void handleSystemGraphRefresh(SystemGraphRefreshEvent event) {
+        Task triggerTask = taskUtil.getTaskById(event.getTriggerTask().getId());
+        Project project = triggerTask.getProject();
+
+        var metadata = new HashMap<String, Object>();
+        metadata.put("triggerTaskId", triggerTask.getId());
+        metadata.put("triggerTaskTitle", triggerTask.getTitle());
+
+        ActionLogEntry logEntry = ActionLogEntry.builder()
+                .project(project)
+                .actorType(AuthorType.SYSTEM)
+                .eventType(ActionLogEventType.TASK_STATUSES_RECALCULATED)
+                .description(String.format("Изменение задачи '%s' вызвало системный пересчет статусов в проекте.", triggerTask.getTitle()))
+                .metadata(metadata)
+                .build();
+
+        actionLogRepository.save(logEntry);
+    }
 }
