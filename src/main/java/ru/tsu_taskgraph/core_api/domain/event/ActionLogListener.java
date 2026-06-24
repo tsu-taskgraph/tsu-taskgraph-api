@@ -3,11 +3,12 @@ package ru.tsu_taskgraph.core_api.domain.event;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionalEventListener;
-import ru.tsu_taskgraph.core_api.entity.ActionLogEntry;
-import ru.tsu_taskgraph.core_api.entity.ActionLogEventType;
-import ru.tsu_taskgraph.core_api.entity.AuthorType;
-import ru.tsu_taskgraph.core_api.entity.User;
+import ru.tsu_taskgraph.core_api.entity.*;
 import ru.tsu_taskgraph.core_api.repository.ActionLogRepository;
+import ru.tsu_taskgraph.core_api.util.ProjectUtil;
+import ru.tsu_taskgraph.core_api.util.TaskUtil;
+import ru.tsu_taskgraph.core_api.util.UserUtil;
+import ru.tsu_taskgraph.core_api.util.WikiPageUtil;
 
 import java.util.HashMap;
 import java.util.Set;
@@ -18,11 +19,15 @@ import java.util.stream.Collectors;
 public class ActionLogListener {
 
     private final ActionLogRepository actionLogRepository;
+    private final TaskUtil taskUtil;
+    private final ProjectUtil projectUtil;
+    private final UserUtil userUtil;
+    private final WikiPageUtil wikiPageUtil;
 
     @TransactionalEventListener
     public void handleProjectCreated(ProjectCreatedEvent event) {
-        var project = event.getProject();
-        var actor = event.getActor();
+        Project project = projectUtil.getProjectById(event.getProject().getId());
+        User actor = userUtil.getUserById(event.getActor().getId());
 
         var metadata = new HashMap<String, Object>();
         metadata.put("actorId", actor.getId());
@@ -42,8 +47,8 @@ public class ActionLogListener {
 
     @TransactionalEventListener
     public void handleProjectUpdated(ProjectUpdatedEvent event) {
-        var project = event.getProject();
-        var actor = event.getActor();
+        Project project = projectUtil.getProjectById(event.getProject().getId());
+        User actor = userUtil.getUserById(event.getActor().getId());
 
         var metadata = new HashMap<String, Object>();
         metadata.put("actorId", actor.getId());
@@ -63,10 +68,10 @@ public class ActionLogListener {
 
     @TransactionalEventListener
     public void handleMemberInvited(MemberInvitedEvent event) {
-        var member = event.getMember();
-        var actor = event.getActor();
-        var project = member.getProject();
-        var invitedUser = member.getUser();
+        ProjectMember member = event.getMember();
+        User actor = userUtil.getUserById(event.getActor().getId());
+        Project project = projectUtil.getProjectById(member.getProject().getId());
+        User invitedUser = userUtil.getUserById(member.getUser().getId());
 
         var metadata = new HashMap<String, Object>();
         metadata.put("actorId", actor.getId());
@@ -89,10 +94,10 @@ public class ActionLogListener {
 
     @TransactionalEventListener
     public void handleMemberRoleChanged(MemberRoleChangedEvent event) {
-        var member = event.getMember();
-        var actor = event.getActor();
-        var project = member.getProject();
-        var targetUser = member.getUser();
+        ProjectMember member = event.getMember();
+        User actor = userUtil.getUserById(event.getActor().getId());
+        Project project = projectUtil.getProjectById(member.getProject().getId());
+        User targetUser = userUtil.getUserById(member.getUser().getId());
 
         var metadata = new HashMap<String, Object>();
         metadata.put("actorId", actor.getId());
@@ -115,10 +120,10 @@ public class ActionLogListener {
 
     @TransactionalEventListener
     public void handleMemberRemoved(MemberRemovedEvent event) {
-        var member = event.getMember();
-        var actor = event.getActor();
-        var project = member.getProject();
-        var removedUser = member.getUser();
+        ProjectMember member = event.getMember();
+        User actor = userUtil.getUserById(event.getActor().getId());
+        Project project = projectUtil.getProjectById(member.getProject().getId());
+        User removedUser = userUtil.getUserById(member.getUser().getId());
 
         var metadata = new HashMap<String, Object>();
         metadata.put("actorId", actor.getId());
@@ -140,9 +145,9 @@ public class ActionLogListener {
 
     @TransactionalEventListener
     public void handleTaskCreated(TaskCreatedEvent event) {
-        var task = event.getTask();
-        var actor = event.getActor();
-        var project = task.getProject();
+        Task task = taskUtil.getTaskById(event.getTask().getId());
+        User actor = userUtil.getUserById(event.getActor().getId());
+        Project project = task.getProject();
 
         var metadata = new HashMap<String, Object>();
         metadata.put("actorId", actor.getId());
@@ -163,9 +168,9 @@ public class ActionLogListener {
 
     @TransactionalEventListener
     public void handleTaskUpdated(TaskUpdatedEvent event) {
-        var task = event.getTask();
-        var actor = event.getActor();
-        var project = task.getProject();
+        Task task = taskUtil.getTaskById(event.getTask().getId());
+        User actor = userUtil.getUserById(event.getActor().getId());
+        Project project = task.getProject();
 
         var metadata = new HashMap<String, Object>();
         metadata.put("actorId", actor.getId());
@@ -186,9 +191,9 @@ public class ActionLogListener {
 
     @TransactionalEventListener
     public void handleTaskStatusChanged(TaskStatusChangedEvent event) {
-        var task = event.getTask();
-        var actor = event.getActor();
-        var project = task.getProject();
+        Task task = taskUtil.getTaskById(event.getTask().getId());
+        User actor = userUtil.getUserById(event.getActor().getId());
+        Project project = task.getProject();
 
         var metadata = new HashMap<String, Object>();
         metadata.put("actorId", actor.getId());
@@ -212,11 +217,11 @@ public class ActionLogListener {
 
     @TransactionalEventListener
     public void handleTaskAssigned(TaskAssignedEvent event) {
-        var task = event.getTask();
-        var actor = event.getActor();
-        var project = task.getProject();
-        var oldAssignees = event.getOldAssignees();
-        var newAssignees = task.getAssignees();
+        Task task = taskUtil.getTaskById(event.getTask().getId());
+        User actor = userUtil.getUserById(event.getActor().getId());
+        Project project = task.getProject();
+        Set<User> oldAssignees = event.getOldAssignees();
+        Set<User> newAssignees = task.getAssignees();
 
         Set<User> added = newAssignees.stream()
                 .filter(u -> !oldAssignees.contains(u))
@@ -245,9 +250,9 @@ public class ActionLogListener {
 
     @TransactionalEventListener
     public void handleTaskDeleted(TaskDeletedEvent event) {
-        var task = event.getTask();
-        var actor = event.getActor();
-        var project = task.getProject();
+        Task task = event.getTask(); // This is a detached, deleted entity
+        User actor = userUtil.getUserById(event.getActor().getId());
+        Project project = projectUtil.getProjectById(task.getProject().getId());
 
         var metadata = new HashMap<String, Object>();
         metadata.put("actorId", actor.getId());
@@ -268,10 +273,10 @@ public class ActionLogListener {
 
     @TransactionalEventListener
     public void handleTimeLogged(TimeLoggedEvent event) {
-        var timeLog = event.getTimeLog();
-        var actor = event.getActor();
-        var task = timeLog.getTask();
-        var project = task.getProject();
+        TimeLog timeLog = event.getTimeLog();
+        User actor = userUtil.getUserById(event.getActor().getId());
+        Task task = taskUtil.getTaskById(timeLog.getTask().getId());
+        Project project = task.getProject();
 
         var metadata = new HashMap<String, Object>();
         metadata.put("actorId", actor.getId());
@@ -294,11 +299,11 @@ public class ActionLogListener {
 
     @TransactionalEventListener
     public void handleEdgeCreated(EdgeCreatedEvent event) {
-        var edge = event.getEdge();
-        var actor = event.getActor();
-        var project = edge.getProject();
-        var sourceTask = edge.getSourceTask();
-        var targetTask = edge.getTargetTask();
+        Edge edge = event.getEdge();
+        User actor = userUtil.getUserById(event.getActor().getId());
+        Project project = projectUtil.getProjectById(edge.getProject().getId());
+        Task sourceTask = taskUtil.getTaskById(edge.getSourceTask().getId());
+        Task targetTask = taskUtil.getTaskById(edge.getTargetTask().getId());
 
         var metadata = new HashMap<String, Object>();
         metadata.put("actorId", actor.getId());
@@ -322,11 +327,11 @@ public class ActionLogListener {
 
     @TransactionalEventListener
     public void handleEdgeDeleted(EdgeDeletedEvent event) {
-        var edge = event.getEdge();
-        var actor = event.getActor();
-        var project = edge.getProject();
-        var sourceTask = edge.getSourceTask();
-        var targetTask = edge.getTargetTask();
+        Edge edge = event.getEdge(); // This is a detached, deleted entity
+        User actor = userUtil.getUserById(event.getActor().getId());
+        Project project = projectUtil.getProjectById(edge.getProject().getId());
+        Task sourceTask = taskUtil.getTaskById(edge.getSourceTask().getId());
+        Task targetTask = taskUtil.getTaskById(edge.getTargetTask().getId());
 
         var metadata = new HashMap<String, Object>();
         metadata.put("actorId", actor.getId());
@@ -350,9 +355,9 @@ public class ActionLogListener {
 
     @TransactionalEventListener
     public void handleWikiPageCreated(WikiPageCreatedEvent event) {
-        var wikiPage = event.getWikiPage();
-        var actor = event.getActor();
-        var project = wikiPage.getProject();
+        WikiPage wikiPage = wikiPageUtil.getWikiPageById(event.getWikiPage().getId());
+        User actor = event.getActor() != null ? userUtil.getUserById(event.getActor().getId()) : null;
+        Project project = wikiPage.getProject();
 
         var metadata = new HashMap<String, Object>();
         metadata.put("wikiPageId", wikiPage.getId());
@@ -381,9 +386,9 @@ public class ActionLogListener {
 
     @TransactionalEventListener
     public void handleWikiPageUpdated(WikiPageUpdatedEvent event) {
-        var wikiPage = event.getWikiPage();
-        var actor = event.getActor();
-        var project = wikiPage.getProject();
+        WikiPage wikiPage = wikiPageUtil.getWikiPageById(event.getWikiPage().getId());
+        User actor = event.getActor() != null ? userUtil.getUserById(event.getActor().getId()) : null;
+        Project project = wikiPage.getProject();
 
         var metadata = new HashMap<String, Object>();
         metadata.put("wikiPageId", wikiPage.getId());
@@ -412,7 +417,7 @@ public class ActionLogListener {
 
     @TransactionalEventListener
     public void handleAiSkeletonGenerated(AiSkeletonGeneratedEvent event) {
-        var project = event.getProject();
+        Project project = projectUtil.getProjectById(event.getProject().getId());
         var response = event.getResponse();
 
         var metadata = new HashMap<String, Object>();
@@ -437,8 +442,8 @@ public class ActionLogListener {
 
     @TransactionalEventListener
     public void handleAiEnrichmentCompleted(AiEnrichmentCompletedEvent event) {
-        var task = event.getTask();
-        var project = task.getProject();
+        Task task = taskUtil.getTaskById(event.getTask().getId());
+        Project project = task.getProject();
 
         var metadata = new HashMap<String, Object>();
         metadata.put("taskId", task.getId());
@@ -457,8 +462,8 @@ public class ActionLogListener {
 
     @TransactionalEventListener
     public void handleAiEnrichmentFailed(AiEnrichmentFailedEvent event) {
-        var task = event.getTask();
-        var project = task.getProject();
+        Task task = taskUtil.getTaskById(event.getTask().getId());
+        Project project = task.getProject();
 
         var metadata = new HashMap<String, Object>();
         metadata.put("taskId", task.getId());
