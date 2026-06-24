@@ -85,4 +85,8 @@ public class AuditEventPublisher {
     public void publishAiEnrichmentFailedEvent(Object source, Task task, String error) {
         publisher.publishEvent(new AiEnrichmentFailedEvent(source, task, error));
     }
+
+    public void publishSystemGraphRefreshEvent(Object source, Task triggerTask) {
+        publisher.publishEvent(new SystemGraphRefreshEvent(source, triggerTask));
+    }
 }

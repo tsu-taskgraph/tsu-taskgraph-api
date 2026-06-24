@@ -25,4 +25,6 @@ public enum ActionLogEventType {
     AI_ENRICHMENT_FAILED,
     BLUEPRINT_GENERATED,
 
+    // --- SYSTEM ACTIONS ---
+    TASK_STATUSES_RECALCULATED,
 }

@@ -3,6 +3,7 @@ package ru.tsu_taskgraph.core_api.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.tsu_taskgraph.core_api.domain.event.AuditEventPublisher;
 import ru.tsu_taskgraph.core_api.dto.task.TaskNode;
 import ru.tsu_taskgraph.core_api.entity.Edge;
 import ru.tsu_taskgraph.core_api.entity.Task;
@@ -12,11 +13,7 @@ import ru.tsu_taskgraph.core_api.repository.EdgeRepository;
 import ru.tsu_taskgraph.core_api.repository.TaskRepository;
 import ru.tsu_taskgraph.core_api.util.TaskUtil;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +24,16 @@ public class TaskStatusService {
     private final TaskUtil taskUtil;
     private final TaskMapper taskMapper;
     private final GraphLayerService graphLayerService;
+    private final AuditEventPublisher auditEventPublisher;
+
+    @Transactional
+    public void eventRefreshByTask(UUID taskId) {
+        Task task = taskUtil.getTaskById(taskId);
+
+        auditEventPublisher.publishSystemGraphRefreshEvent(this, task);
+
+        refreshAllTaskStatuses(task.getProject().getId());
+    }
 
     @Transactional
     public void refreshAllTaskStatuses(UUID projectId) {
