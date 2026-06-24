@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="11-add-cascade-delete-to-edges-1" author="system">
+        <preConditions onFail="MARK_RAN">
+            <foreignKeyConstraintExists foreignKeyName="FK_EDGES_ON_SOURCE_TASK"/>
+            <foreignKeyConstraintExists foreignKeyName="FK_EDGES_ON_TARGET_TASK"/>
+        </preConditions>
+
+        <!-- 1. Drop the old foreign key constraints -->
+        <dropForeignKeyConstraint baseTableName="edges" constraintName="FK_EDGES_ON_SOURCE_TASK"/>
+        <dropForeignKeyConstraint baseTableName="edges" constraintName="FK_EDGES_ON_TARGET_TASK"/>
+
+        <!-- 2. Add the new constraints with ON DELETE CASCADE -->
+        <addForeignKeyConstraint baseColumnNames="source_task_id"
+                                 baseTableName="edges"
+                                 constraintName="FK_EDGES_ON_SOURCE_TASK"
+                                 referencedColumnNames="id"
+                                 referencedTableName="tasks"
+                                 onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint baseColumnNames="target_task_id"
+                                 baseTableName="edges"
+                                 constraintName="FK_EDGES_ON_TARGET_TASK"
+                                 referencedColumnNames="id"
+                                 referencedTableName="tasks"
+                                 onDelete="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>
