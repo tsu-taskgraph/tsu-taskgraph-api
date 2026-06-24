@@ -13,11 +13,7 @@ import ru.tsu_taskgraph.core_api.repository.EdgeRepository;
 import ru.tsu_taskgraph.core_api.repository.TaskRepository;
 import ru.tsu_taskgraph.core_api.util.TaskUtil;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +27,7 @@ public class TaskStatusService {
     private final AuditEventPublisher auditEventPublisher;
 
     @Transactional
-    public void eventRefreshByTask(UUID taskId){
+    public void eventRefreshByTask(UUID taskId) {
         Task task = taskUtil.getTaskById(taskId);
 
         auditEventPublisher.publishSystemGraphRefreshEvent(this, task);

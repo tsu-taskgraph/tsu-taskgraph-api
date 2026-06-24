@@ -147,7 +147,7 @@ public class AiService {
             log.warn("Обнаружен цикл в сгенерированном графе для проекта {}. Попытка #{}", project.getId(), i + 1);
             SmartRecoveryRequest recoveryRequest = createRecoveryRequest(project, response, cycle, providerConfig);
             SmartRecoveryResponse recoveryResponse = smartRecoveryService.recover(recoveryRequest);
-            
+
             // Обновляем граф для следующей итерации
             response.setNodes(recoveryResponse.getFixedPatch().getNewNodes());
             response.setEdges(recoveryResponse.getFixedPatch().getNewEdges());
