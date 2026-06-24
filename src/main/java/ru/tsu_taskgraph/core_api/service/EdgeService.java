@@ -50,7 +50,10 @@ public class EdgeService {
 
         applyStatusChangeMatrix(sourceTask, targetTask);
 
+        taskStatusService.refreshAllTaskStatuses(sourceTask.getProject().getId());
+
         auditEventPublisher.publishEdgeCreatedEvent(this, edge, currentUser);
+
 
         return edgeMapper.toDto(edge);
     }
