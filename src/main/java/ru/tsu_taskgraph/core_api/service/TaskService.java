@@ -120,7 +120,7 @@ public class TaskService {
         }
 
         List<TaskNode> unlockedTasks = new ArrayList<>();
-        if ((task.getStatus() == TaskStatus.COMPLETED || task.getStatus() == TaskStatus.SKIPPED) && oldStatus != task.getStatus()) {
+        if (oldStatus != task.getStatus()) {
             unlockedTasks = taskStatusService.updateDependentTasks(task.getId());
         }
 
