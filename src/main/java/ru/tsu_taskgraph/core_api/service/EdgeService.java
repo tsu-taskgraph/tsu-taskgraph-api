@@ -74,11 +74,13 @@ public class EdgeService {
         Edge edge = edgeUtil.getEdgeById(edgeId);
         User currentUser = userUtil.getCurrentUserFromContext();
         Task targetTask = edge.getTargetTask();
+        Task sourceTask = edge.getSourceTask();
 
         edgeRepository.delete(edge);
 
         auditEventPublisher.publishEdgeDeletedEvent(this, edge, currentUser);
 
+        taskStatusService.tryToUnlockTask(sourceTask);
         taskStatusService.tryToUnlockTask(targetTask);
     }
 
