@@ -15,6 +15,7 @@ import ru.tsu_taskgraph.core_api.entity.TaskCategory;
 import ru.tsu_taskgraph.core_api.entity.TaskStatus;
 import ru.tsu_taskgraph.core_api.entity.User;
 import ru.tsu_taskgraph.core_api.service.TaskService;
+import ru.tsu_taskgraph.core_api.service.TaskStatusService;
 
 import java.util.List;
 import java.util.UUID;
@@ -27,6 +28,7 @@ import java.util.UUID;
 public class TaskController {
 
     private final TaskService taskService;
+    private final TaskStatusService taskStatusService;
 
     @PostMapping("/projects/{projectId}/tasks")
     @ResponseStatus(HttpStatus.CREATED)
@@ -139,5 +141,20 @@ public class TaskController {
     })
     public TaskNode assignTask(@PathVariable UUID taskId, @RequestBody AssignTaskRequest request) {
         return taskService.assignTask(taskId, request);
+    }
+
+    @GetMapping("/projects/{projectId}/tasks/refresh-statuses")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Обновить статусы всех задач в проекте",
+            description = "Принудительно пересчитывает статусы всех задач (LOCKED/AVAILABLE) на основе текущих зависимостей. " +
+                    "Полезно для исправления рассинхронизаций в графе.")
+    @PreAuthorize("@projectSecurity.isMember(#projectId)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Статусы успешно обновлены. Возвращает актуальный граф проекта."),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен"),
+            @ApiResponse(responseCode = "404", description = "Проект не найден")
+    })
+    public void refreshProjectTaskStatuses(@PathVariable UUID projectId) {
+        taskStatusService.refreshAllTaskStatuses(projectId);
     }
 }

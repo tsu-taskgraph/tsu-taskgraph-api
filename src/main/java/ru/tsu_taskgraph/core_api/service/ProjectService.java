@@ -155,10 +155,10 @@ public class ProjectService {
         ProjectMember member = projectUtil.getProjectMember(project, user);
         ProjectRole oldRole = member.getRole();
 
+        auditEventPublisher.publishMemberRoleChangedEvent(this, member, oldRole, currentUser);
+
         member.setRole(request.getRole());
         member = projectMemberRepository.save(member);
-
-        auditEventPublisher.publishMemberRoleChangedEvent(this, member, oldRole, currentUser);
 
         return projectMapper.toMemberDto(member);
     }

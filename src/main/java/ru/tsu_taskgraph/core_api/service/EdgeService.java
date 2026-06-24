@@ -76,9 +76,9 @@ public class EdgeService {
         Task targetTask = edge.getTargetTask();
         Task sourceTask = edge.getSourceTask();
 
-        edgeRepository.delete(edge);
-
         auditEventPublisher.publishEdgeDeletedEvent(this, edge, currentUser);
+
+        edgeRepository.delete(edge);
 
         taskStatusService.tryToUnlockTask(sourceTask);
         taskStatusService.tryToUnlockTask(targetTask);
