@@ -1,6 +1,7 @@
 package ru.tsu_taskgraph.core_api.domain.event;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionalEventListener;
 import ru.tsu_taskgraph.core_api.entity.*;
@@ -118,7 +119,7 @@ public class ActionLogListener {
         actionLogRepository.save(logEntry);
     }
 
-    @TransactionalEventListener
+    @EventListener
     public void handleMemberRemoved(MemberRemovedEvent event) {
         ProjectMember member = event.getMember();
         User actor = userUtil.getUserById(event.getActor().getId());
@@ -248,7 +249,7 @@ public class ActionLogListener {
         }
     }
 
-    @TransactionalEventListener
+    @EventListener
     public void handleTaskDeleted(TaskDeletedEvent event) {
         Task task = event.getTask(); // This is a detached, deleted entity
         User actor = userUtil.getUserById(event.getActor().getId());
@@ -325,7 +326,7 @@ public class ActionLogListener {
         actionLogRepository.save(logEntry);
     }
 
-    @TransactionalEventListener
+    @EventListener
     public void handleEdgeDeleted(EdgeDeletedEvent event) {
         Edge edge = event.getEdge(); // This is a detached, deleted entity
         User actor = userUtil.getUserById(event.getActor().getId());

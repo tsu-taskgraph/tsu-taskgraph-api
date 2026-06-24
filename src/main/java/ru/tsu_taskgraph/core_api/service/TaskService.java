@@ -159,9 +159,9 @@ public class TaskService {
         List<Edge> parentEdges = edgeRepository.findByTargetTask(taskToDelete);
         List<UUID> parentIds = parentEdges.stream().map(edge -> edge.getSourceTask().getId()).toList();
 
-        taskRepository.delete(taskToDelete);
-
         auditEventPublisher.publishTaskDeletedEvent(this, taskToDelete, currentUser);
+
+        taskRepository.delete(taskToDelete);
 
         parentIds.forEach(taskStatusService::updateDependentTasks);
     }
