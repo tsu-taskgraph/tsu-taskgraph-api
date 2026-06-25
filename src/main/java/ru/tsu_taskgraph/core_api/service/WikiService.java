@@ -83,9 +83,9 @@ public class WikiService {
     public WikiPageDto updateWikiPage(UUID pageId, UpdateWikiPageRequest request, User currentUser) {
         WikiPage page = wikiPageUtil.getWikiPageById(pageId);
 
-        if (!Objects.equals(request.getVersion(), page.getVersion())) {
-            throw new ResourceConflictException("Страница была изменена другим пользователем. Пожалуйста, обновите страницу.");
-        }
+//        if (!Objects.equals(request.getVersion(), page.getVersion())) {
+//            throw new ResourceConflictException("Страница была изменена другим пользователем. Пожалуйста, обновите страницу.");
+//        }
 
         wikiMapper.updateFromRequest(request, page);
 
