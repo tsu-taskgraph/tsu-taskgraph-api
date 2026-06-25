@@ -92,9 +92,9 @@ public class TaskService {
         Task task = taskUtil.getTaskById(taskId);
         User currentUser = userUtil.getCurrentUserFromContext();
 
-        if (!Objects.equals(request.getVersion(), task.getVersion())) {
-            throw new ResourceConflictException("Задача была изменена другим пользователем. Пожалуйста, обновите страницу.");
-        }
+//        if (!Objects.equals(request.getVersion(), task.getVersion())) {
+//            throw new ResourceConflictException("Задача была изменена другим пользователем. Пожалуйста, обновите страницу.");
+//        }
 
         taskMapper.updateFromRequest(request, task);
 

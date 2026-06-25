@@ -93,9 +93,9 @@ public class ProjectService {
         Project project = projectUtil.getProjectById(projectId);
         User currentUser = userUtil.getCurrentUserFromContext();
 
-        if (!Objects.equals(request.getVersion(), project.getVersion())) {
-            throw new ResourceConflictException("Проект был изменен другим пользователем. Пожалуйста, обновите страницу.");
-        }
+//        if (!Objects.equals(request.getVersion(), project.getVersion())) {
+//            throw new ResourceConflictException("Проект был изменен другим пользователем. Пожалуйста, обновите страницу.");
+//        }
 
         projectMapper.updateProjectFromDto(request, project);
 
