@@ -17,6 +17,7 @@ public class ProjectMemberDto {
     private UUID id;
     private UUID projectId;
     private UUID userId;
+    private String userDisplayName;
     private ProjectRole role;
     private LocalDateTime joinedAt;
 }

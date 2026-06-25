@@ -21,6 +21,7 @@ public abstract class ProjectMapper {
 
     @Mapping(source = "project.id", target = "projectId")
     @Mapping(source = "user.id", target = "userId")
+    @Mapping(source = "user.displayName", target = "userDisplayName")
     public abstract ProjectMemberDto toMemberDto(ProjectMember member);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
